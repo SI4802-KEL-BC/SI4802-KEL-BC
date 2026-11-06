@@ -141,6 +141,17 @@ class AktivitasPenggunaTest extends TestCase
 
         $this->assertModelMissing($aktivitas);
         $this->assertDatabaseCount('verifikasi_sampah', 0); // tidak tersisa di antrean verifikasi
+
+        // Dari sisi Admin: tidak muncul di antrean dan tidak bisa diproses.
+        $admin = Pengguna::factory()->admin()->create();
+        $this->actingAs($admin)
+            ->get('/admin/verifikasi')
+            ->assertOk()
+            ->assertDontSee(route('admin.verifikasi.show', $aktivitas), false)
+            ->assertSee('Tidak ada aktivitas yang perlu diverifikasi.');
+        $this->actingAs($admin)
+            ->post(route('admin.verifikasi.proses', $aktivitas), ['aksi' => 'setujui'])
+            ->assertNotFound();
     }
 
     /** @return array<string, array{string}> */
