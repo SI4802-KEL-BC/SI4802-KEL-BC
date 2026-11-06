@@ -25,6 +25,7 @@ class AktivitasPolicy
 
     private function pemilik(Pengguna $pengguna, AktivitasPemilahan $aktivitas): bool
     {
-        return $aktivitas->id_pengguna === $pengguna->id_pengguna;
+        // Cast agar tidak bergantung pada tipe (int/string) yang dikembalikan driver database.
+        return (int) $aktivitas->id_pengguna === (int) $pengguna->id_pengguna;
     }
 }
