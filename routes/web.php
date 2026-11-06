@@ -3,23 +3,9 @@
 use App\Http\Controllers\AktivitasController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\QrIdController;
-use App\Models\Pengguna;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 // STUB PBI-13: placeholder halaman login (milik PBI auth) agar redirect "auth" berfungsi.
 Route::get('/login', fn () => response('Halaman login (stub PBI-13)', 200))->name('login');
-
-// STUB PBI-13: login pintas HANYA untuk APP_ENV=local, sementara sampai login PBI-01 masuk.
-// Contoh: /dev-login/user@pilahku.test (lihat PilahkuDemoSeeder). Tidak terdaftar di production/testing.
-if (app()->environment('local')) {
-    Route::get('/dev-login/{email}', function (Request $request, string $email) {
-        Auth::login(Pengguna::where('email_kampus', $email)->firstOrFail());
-        $request->session()->regenerate();
-
-        return redirect()->route('qr-id.index');
-    })->name('dev-login');
-}
 
 // PBI-13: halaman pengguna (wajib login).
 Route::middleware('auth')->group(function () {
