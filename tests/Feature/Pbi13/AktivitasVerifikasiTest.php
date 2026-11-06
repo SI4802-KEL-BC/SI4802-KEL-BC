@@ -5,6 +5,7 @@ namespace Tests\Feature\Pbi13;
 use App\Models\AktivitasPemilahan;
 use App\Models\AturanReward;
 use App\Models\KategoriSampah;
+use App\Models\Pengguna;
 use App\Models\SesiPembuangan;
 use App\Models\TransaksiPoin;
 use App\Models\VerifikasiSampah;
@@ -15,7 +16,7 @@ use Illuminate\Testing\TestResponse;
 use Tests\Feature\Pbi13\Concerns\SiapkanPerangkat;
 use Tests\TestCase;
 
-/** TC-13-03, 04, 11 (TC-13-05 dan 13 menyusul bersama panel admin di tahap 8). */
+/** TC-13-03, 04, 05, 11, 13 (+ aturan antrean verifikasi manual Admin). */
 class AktivitasVerifikasiTest extends TestCase
 {
     use RefreshDatabase;
@@ -25,10 +26,14 @@ class AktivitasVerifikasiTest extends TestCase
 
     private KategoriSampah $organik;
 
+    private Pengguna $admin;
+
     protected function setUp(): void
     {
         parent::setUp();
         $this->siapkanPerangkat();
+        $this->withoutVite();
+        $this->admin = Pengguna::factory()->admin()->create();
 
         $this->plastik = KategoriSampah::factory()->create(['nama_kategori' => 'Plastik']);
         $this->organik = KategoriSampah::factory()->create(['nama_kategori' => 'Organik']);
@@ -190,5 +195,227 @@ class AktivitasVerifikasiTest extends TestCase
         $verifikasi = VerifikasiSampah::sole();
         $this->assertSame(VerifikasiSampah::TIDAK_VALID, $verifikasi->hasil);
         $this->assertSame('Kategori tidak sesuai tempat sampah', $verifikasi->keterangan);
+    }
+
+    /** Aktivitas milik pengguna uji yang masuk antrean manual (tahap 1 = Ragu). */
+    private function aktivitasRagu(array $state = [], ?KategoriSampah $kategori = null): AktivitasPemilahan
+    {
+        $sesi = SesiPembuangan::factory()->create([
+            'id_pengguna' => $this->pengguna->id_pengguna,
+            'id_lokasi' => $this->lokasi->id_lokasi,
+            'status_sesi' => SesiPembuangan::SELESAI,
+        ]);
+        $aktivitas = AktivitasPemilahan::factory()->create($state + [
+            'id_sesi' => $sesi->id_sesi,
+            'id_kategori' => ($kategori ?? $this->plastik)->id_kategori,
+        ]);
+        VerifikasiSampah::factory()->ragu(0.55)->create(['id_aktivitas' => $aktivitas->id_aktivitas]);
+
+        return $aktivitas;
+    }
+
+    public function test_tc_13_05_skor_rendah_masuk_antrean_lalu_admin_menyetujui(): void
+    {
+        $this->mockIdentifikasi('plastic', 0.55);
+        $this->scanDanKirimFoto()->assertCreated()->assertJsonPath('data.hasil_tahap_1', 'Ragu');
+        $aktivitas = AktivitasPemilahan::sole();
+
+        // Muncul di /admin/verifikasi.
+        $this->actingAs($this->admin)
+            ->get('/admin/verifikasi')
+            ->assertOk()
+            ->assertSee('Daftar Verifikasi Manual')
+            ->assertSee($this->pengguna->nama_lengkap)
+            ->assertSee('plastic')
+            ->assertSee('0.55')
+            ->assertSee(route('admin.verifikasi.show', $aktivitas), false);
+
+        // Detail verifikasi: foto, label, skor, tombol Setujui / Tolak.
+        $this->actingAs($this->admin)
+            ->get(route('admin.verifikasi.show', $aktivitas))
+            ->assertOk()
+            ->assertSee('storage/'.$aktivitas->foto_bukti, false)
+            ->assertSee('plastic')
+            ->assertSee('0.55')
+            ->assertSee('Setujui')
+            ->assertSee('Tolak');
+
+        $this->actingAs($this->admin)
+            ->post(route('admin.verifikasi.proses', $aktivitas), ['aksi' => 'setujui'])
+            ->assertRedirect(route('admin.verifikasi.index'))
+            ->assertSessionHas('status');
+
+        $aktivitas->refresh();
+        $this->assertSame(AktivitasPemilahan::TERVERIFIKASI, $aktivitas->status_verifikasi);
+        $this->assertSame(10, $aktivitas->poin_diperoleh);
+        $this->assertSame(1, TransaksiPoin::count());
+        $this->assertSame($aktivitas->id_aktivitas, TransaksiPoin::sole()->id_aktivitas);
+
+        // Verifikasi tahap 2 tercatat dengan id_verifikator = Admin; tahap 1 tetap ada.
+        $this->assertSame(2, VerifikasiSampah::count());
+        $tahap2 = VerifikasiSampah::where('tahap', VerifikasiSampah::TAHAP_MANUAL)->sole();
+        $this->assertSame($this->admin->id_pengguna, $tahap2->id_verifikator);
+        $this->assertSame(VerifikasiSampah::VALID, $tahap2->hasil);
+        $this->assertSame(VerifikasiSampah::RAGU, VerifikasiSampah::where('tahap', 1)->sole()->hasil);
+
+        // Keluar dari antrean.
+        $this->actingAs($this->admin)->get('/admin/verifikasi')->assertDontSee('data-antrean', false);
+    }
+
+    public function test_tc_13_05_admin_menolak_dengan_alasan_poin_nol_dan_tahap_2_tercatat(): void
+    {
+        $aktivitas = $this->aktivitasRagu();
+
+        $this->actingAs($this->admin)
+            ->post(route('admin.verifikasi.proses', $aktivitas), ['aksi' => 'tolak', 'alasan' => 'Foto tidak jelas'])
+            ->assertRedirect(route('admin.verifikasi.index'));
+
+        $aktivitas->refresh();
+        $this->assertSame(AktivitasPemilahan::DITOLAK, $aktivitas->status_verifikasi);
+        $this->assertSame('Foto tidak jelas', $aktivitas->alasan_penolakan);
+        $this->assertSame(0, $aktivitas->poin_diperoleh);
+        $this->assertSame(0, TransaksiPoin::count()); // tidak ada poin maupun pengurangan poin
+
+        $tahap2 = VerifikasiSampah::where('tahap', VerifikasiSampah::TAHAP_MANUAL)->sole();
+        $this->assertSame($this->admin->id_pengguna, $tahap2->id_verifikator);
+        $this->assertSame(VerifikasiSampah::TIDAK_VALID, $tahap2->hasil);
+        $this->assertSame('Foto tidak jelas', $tahap2->keterangan);
+    }
+
+    public function test_tc_13_13_admin_menolak_tanpa_alasan_ditolak_validasi(): void
+    {
+        $aktivitas = $this->aktivitasRagu();
+
+        foreach ([null, '', '   '] as $alasanKosong) {
+            $this->actingAs($this->admin)
+                ->from(route('admin.verifikasi.show', $aktivitas))
+                ->post(route('admin.verifikasi.proses', $aktivitas), ['aksi' => 'tolak', 'alasan' => $alasanKosong])
+                ->assertRedirect(route('admin.verifikasi.show', $aktivitas))
+                ->assertSessionHasErrors(['alasan' => 'Alasan wajib diisi']);
+        }
+
+        $aktivitas->refresh();
+        $this->assertSame(AktivitasPemilahan::MENUNGGU, $aktivitas->status_verifikasi);
+        $this->assertNull($aktivitas->alasan_penolakan);
+        $this->assertSame(0, VerifikasiSampah::where('tahap', VerifikasiSampah::TAHAP_MANUAL)->count());
+
+        // Pesan tampil di halaman detail setelah gagal validasi.
+        $this->actingAs($this->admin)
+            ->from(route('admin.verifikasi.show', $aktivitas))
+            ->followingRedirects()
+            ->post(route('admin.verifikasi.proses', $aktivitas), ['aksi' => 'tolak'])
+            ->assertSee('Alasan wajib diisi');
+    }
+
+    public function test_alasan_tidak_wajib_saat_menyetujui(): void
+    {
+        $aktivitas = $this->aktivitasRagu();
+
+        $this->actingAs($this->admin)
+            ->post(route('admin.verifikasi.proses', $aktivitas), ['aksi' => 'setujui'])
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame(AktivitasPemilahan::TERVERIFIKASI, $aktivitas->fresh()->status_verifikasi);
+    }
+
+    public function test_aksi_tidak_dikenal_ditolak(): void
+    {
+        $aktivitas = $this->aktivitasRagu();
+
+        $this->actingAs($this->admin)
+            ->post(route('admin.verifikasi.proses', $aktivitas), ['aksi' => 'hapus'])
+            ->assertSessionHasErrors('aksi');
+
+        $this->assertSame(AktivitasPemilahan::MENUNGGU, $aktivitas->fresh()->status_verifikasi);
+    }
+
+    public function test_antrean_hanya_menampilkan_hasil_tahap_1_ragu(): void
+    {
+        $ragu = $this->aktivitasRagu();
+
+        // Valid (Terverifikasi otomatis), Tidak Valid (Ditolak otomatis), dan Menunggu tanpa hasil tahap 1.
+        $valid = $this->aktivitasRagu(['status_verifikasi' => AktivitasPemilahan::TERVERIFIKASI]);
+        $valid->verifikasi()->update(['hasil' => VerifikasiSampah::VALID]);
+        $tidakValid = $this->aktivitasRagu(['status_verifikasi' => AktivitasPemilahan::DITOLAK]);
+        $tidakValid->verifikasi()->update(['hasil' => VerifikasiSampah::TIDAK_VALID]);
+        $tanpaHasil = $this->aktivitasRagu();
+        $tanpaHasil->verifikasi()->delete();
+
+        $this->actingAs($this->admin)
+            ->get('/admin/verifikasi')
+            ->assertOk()
+            ->assertSee(route('admin.verifikasi.show', $ragu), false)
+            ->assertDontSee(route('admin.verifikasi.show', $valid), false)
+            ->assertDontSee(route('admin.verifikasi.show', $tidakValid), false)
+            ->assertDontSee(route('admin.verifikasi.show', $tanpaHasil), false);
+
+        $this->assertSame([$ragu->id_aktivitas], AktivitasPemilahan::antreanManual()->pluck('id_aktivitas')->all());
+    }
+
+    public function test_antrean_kosong_menampilkan_pesan(): void
+    {
+        $this->actingAs($this->admin)
+            ->get('/admin/verifikasi')
+            ->assertOk()
+            ->assertSee('Tidak ada aktivitas yang perlu diverifikasi.');
+    }
+
+    public function test_aktivitas_yang_bukan_antrean_tidak_bisa_dilihat_atau_diproses_admin(): void
+    {
+        $valid = $this->aktivitasRagu(['status_verifikasi' => AktivitasPemilahan::TERVERIFIKASI]);
+        $valid->verifikasi()->update(['hasil' => VerifikasiSampah::VALID]);
+
+        $this->actingAs($this->admin)->get(route('admin.verifikasi.show', $valid))->assertNotFound();
+        $this->actingAs($this->admin)
+            ->post(route('admin.verifikasi.proses', $valid), ['aksi' => 'tolak', 'alasan' => 'x'])
+            ->assertNotFound();
+
+        $this->assertSame(AktivitasPemilahan::TERVERIFIKASI, $valid->fresh()->status_verifikasi);
+    }
+
+    public function test_aktivitas_yang_sudah_diproses_admin_tidak_bisa_diproses_lagi_dan_poin_tidak_ganda(): void
+    {
+        $aktivitas = $this->aktivitasRagu();
+
+        $this->actingAs($this->admin)->post(route('admin.verifikasi.proses', $aktivitas), ['aksi' => 'setujui']);
+        $this->actingAs($this->admin)
+            ->post(route('admin.verifikasi.proses', $aktivitas), ['aksi' => 'setujui'])
+            ->assertNotFound();
+
+        $this->assertSame(1, TransaksiPoin::count());
+        $this->assertSame(10, $aktivitas->fresh()->poin_diperoleh);
+    }
+
+    public function test_aktivitas_yang_dibatalkan_pengguna_hilang_dari_antrean_dan_tidak_bisa_diproses(): void
+    {
+        $aktivitas = $this->aktivitasRagu();
+
+        $this->actingAs($this->pengguna)->delete(route('aktivitas.destroy', $aktivitas))->assertRedirect();
+
+        $this->actingAs($this->admin)->get('/admin/verifikasi')
+            ->assertDontSee(route('admin.verifikasi.show', $aktivitas), false);
+        $this->actingAs($this->admin)
+            ->post(route('admin.verifikasi.proses', $aktivitas), ['aksi' => 'setujui'])
+            ->assertNotFound();
+        $this->assertSame(0, TransaksiPoin::count());
+    }
+
+    public function test_aktivitas_tanpa_kategori_tidak_bisa_disetujui_tetapi_bisa_ditolak(): void
+    {
+        $this->mockIdentifikasi('kaca', 0.95); // label tak terpetakan => Ragu tanpa kategori
+        $this->scanDanKirimFoto()->assertCreated();
+        $aktivitas = AktivitasPemilahan::sole();
+        $this->assertNull($aktivitas->id_kategori);
+
+        $this->actingAs($this->admin)
+            ->post(route('admin.verifikasi.proses', $aktivitas), ['aksi' => 'setujui'])
+            ->assertSessionHasErrors('aksi');
+        $this->assertSame(AktivitasPemilahan::MENUNGGU, $aktivitas->fresh()->status_verifikasi);
+        $this->assertSame(0, VerifikasiSampah::where('tahap', VerifikasiSampah::TAHAP_MANUAL)->count());
+
+        $this->actingAs($this->admin)
+            ->post(route('admin.verifikasi.proses', $aktivitas), ['aksi' => 'tolak', 'alasan' => 'Jenis sampah tidak dikenali'])
+            ->assertSessionHasNoErrors();
+        $this->assertSame(AktivitasPemilahan::DITOLAK, $aktivitas->fresh()->status_verifikasi);
     }
 }

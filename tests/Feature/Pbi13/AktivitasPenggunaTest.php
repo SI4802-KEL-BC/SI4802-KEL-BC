@@ -13,8 +13,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 /**
- * TC-13-06, 07, 08, 12, 15, 17 + bagian "tanpa login" dari TC-13-16
- * (bagian non-Admin ke /admin/verifikasi diuji bersama panel admin di tahap 8).
+ * TC-13-06, 07, 08, 12, 15, 16, 17 (TC-13-16: tanpa login dan non-Admin ke /admin/verifikasi).
  */
 class AktivitasPenggunaTest extends TestCase
 {
@@ -220,6 +219,31 @@ class AktivitasPenggunaTest extends TestCase
         $this->delete(route('aktivitas.destroy', $aktivitas))->assertRedirect(route('login'));
 
         $this->assertModelExists($aktivitas);
+    }
+
+    public function test_tc_13_16_tanpa_login_halaman_verifikasi_manual_diarahkan_ke_login(): void
+    {
+        $aktivitas = $this->aktivitasMilik($this->pemilik);
+
+        $this->get('/admin/verifikasi')->assertRedirect(route('login'));
+        $this->get(route('admin.verifikasi.show', $aktivitas))->assertRedirect(route('login'));
+        $this->post(route('admin.verifikasi.proses', $aktivitas), ['aksi' => 'setujui'])->assertRedirect(route('login'));
+    }
+
+    public function test_tc_13_16_pengguna_biasa_ditolak_403_di_verifikasi_manual(): void
+    {
+        $aktivitas = $this->aktivitasMilik($this->pemilik);
+        VerifikasiSampah::factory()->ragu()->create(['id_aktivitas' => $aktivitas->id_aktivitas]);
+
+        $this->actingAs($this->pemilik)->get('/admin/verifikasi')->assertForbidden();
+        $this->actingAs($this->pemilik)->get(route('admin.verifikasi.show', $aktivitas))->assertForbidden();
+        $this->actingAs($this->pemilik)
+            ->post(route('admin.verifikasi.proses', $aktivitas), ['aksi' => 'setujui'])
+            ->assertForbidden();
+
+        // Tidak ada perubahan dan tidak ada poin.
+        $this->assertSame(AktivitasPemilahan::MENUNGGU, $aktivitas->fresh()->status_verifikasi);
+        $this->assertDatabaseCount('transaksi_poin', 0);
     }
 
     public function test_tc_13_17_batalkan_lalu_kembali_tidak_mengubah_aktivitas(): void

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Database\Factories\AktivitasPemilahanFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -69,6 +70,21 @@ class AktivitasPemilahan extends Model
     public function batalkan(): void
     {
         $this->delete();
+    }
+
+    /**
+     * Antrean verifikasi manual Admin: masih Menunggu Validasi, hasil tahap 1 "Ragu",
+     * dan belum punya verifikasi tahap 2.
+     */
+    public function scopeAntreanManual(Builder $query): Builder
+    {
+        return $query
+            ->where('status_verifikasi', self::MENUNGGU)
+            ->whereHas('verifikasi', fn (Builder $q) => $q
+                ->where('tahap', VerifikasiSampah::TAHAP_OTOMATIS)
+                ->where('hasil', VerifikasiSampah::RAGU))
+            ->whereDoesntHave('verifikasi', fn (Builder $q) => $q
+                ->where('tahap', VerifikasiSampah::TAHAP_MANUAL));
     }
 
     public function menungguValidasi(): bool
