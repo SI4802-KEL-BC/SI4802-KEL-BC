@@ -23,6 +23,12 @@ return [
         explode(',', (string) env('PILAHKU_DEVICE_TOKENS', 'dev-token-local'))
     ))),
 
+    // Hasil tetap MockVerifikasiOtomatisService (simulasi model klasifikasi di development).
+    'mock' => [
+        'label' => env('PILAHKU_MOCK_LABEL', 'plastic'),
+        'skor' => (float) env('PILAHKU_MOCK_SKOR', 0.92),
+    ],
+
     // Pemetaan label model identifikasi => nama_kategori di tabel kategori_sampah.
     'label_kategori' => [
         'plastic' => 'Plastik',

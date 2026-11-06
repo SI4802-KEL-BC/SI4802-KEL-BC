@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\VerifikasiOtomatisService;
 use Database\Factories\VerifikasiSampahFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -44,6 +45,16 @@ class VerifikasiSampah extends Model
     protected static function newFactory(): VerifikasiSampahFactory
     {
         return VerifikasiSampahFactory::new();
+    }
+
+    /**
+     * Identifikasi gambar lewat VerifikasiOtomatisService (di-mock pada dev/test).
+     *
+     * @return array{label: string, skor: float}
+     */
+    public static function identifikasiML(string $fotoPath): array
+    {
+        return app(VerifikasiOtomatisService::class)->identifikasi($fotoPath);
     }
 
     /** Tahap 1 (otomatis): id_verifikator NULL. */

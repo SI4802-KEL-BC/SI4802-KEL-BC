@@ -10,6 +10,7 @@ use App\Models\LokasiTempatSampah;
 use App\Models\Pengguna;
 use App\Models\SesiPembuangan;
 use App\Services\QrTokenService;
+use App\Services\VerifikasiTahap1;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -18,7 +19,10 @@ class PerangkatController extends Controller
 {
     private const PESAN_QR_TIDAK_VALID = 'QR tidak valid atau kedaluwarsa';
 
-    public function __construct(private readonly QrTokenService $qr) {}
+    public function __construct(
+        private readonly QrTokenService $qr,
+        private readonly VerifikasiTahap1 $tahap1,
+    ) {}
 
     /** POST /api/perangkat/scan — validasi QR, buat sesi_pembuangan Aktif. */
     public function scan(ScanRequest $request): JsonResponse
@@ -81,7 +85,7 @@ class PerangkatController extends Controller
             return $this->tolak('Sesi pembuangan telah kedaluwarsa');
         }
 
-        $aktivitas = DB::transaction(function () use ($request, $sesi) {
+        [$aktivitas, $verifikasi] = DB::transaction(function () use ($request, $sesi) {
             $path = $request->file('foto')->store('bukti', 'public');
 
             $aktivitas = AktivitasPemilahan::simpan([
@@ -93,14 +97,18 @@ class PerangkatController extends Controller
 
             $sesi->selesaikan();
 
-            return $aktivitas;
+            // Verifikasi otomatis tahap 1 (Valid / Tidak Valid / Ragu).
+            $verifikasi = $this->tahap1->proses($aktivitas);
+
+            return [$aktivitas->refresh(), $verifikasi];
         });
 
         return response()->json([
-            'message' => 'Foto diterima, aktivitas menunggu validasi',
+            'message' => 'Foto diterima, verifikasi tahap 1 selesai',
             'data' => [
                 'id_aktivitas' => $aktivitas->id_aktivitas,
                 'status_verifikasi' => $aktivitas->status_verifikasi,
+                'hasil_tahap_1' => $verifikasi->hasil,
             ],
         ], 201);
     }
