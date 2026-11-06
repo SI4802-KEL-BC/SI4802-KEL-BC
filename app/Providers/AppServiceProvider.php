@@ -2,8 +2,11 @@
 
 namespace App\Providers;
 
+use App\Models\AktivitasPemilahan;
+use App\Policies\AktivitasPolicy;
 use App\Services\MockVerifikasiOtomatisService;
 use App\Services\VerifikasiOtomatisService;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -22,6 +25,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Nama policy mengikuti spec (AktivitasPolicy), bukan konvensi AktivitasPemilahanPolicy.
+        Gate::policy(AktivitasPemilahan::class, AktivitasPolicy::class);
     }
 }

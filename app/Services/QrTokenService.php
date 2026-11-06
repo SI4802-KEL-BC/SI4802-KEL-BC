@@ -3,6 +3,10 @@
 namespace App\Services;
 
 use App\Models\Pengguna;
+use BaconQrCode\Renderer\Image\SvgImageBackEnd;
+use BaconQrCode\Renderer\ImageRenderer;
+use BaconQrCode\Renderer\RendererStyle\RendererStyle;
+use BaconQrCode\Writer;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Support\Facades\Crypt;
@@ -46,6 +50,17 @@ class QrTokenService
         }
 
         return ['id_pengguna' => (int) $data['uid'], 'berlaku_hingga' => (int) $data['exp']];
+    }
+
+    /** Render token menjadi gambar QR (SVG murni PHP, tanpa imagick). */
+    public function svg(string $token, int $ukuran = 280): string
+    {
+        $writer = new Writer(new ImageRenderer(
+            new RendererStyle($ukuran, 2),
+            new SvgImageBackEnd,
+        ));
+
+        return $writer->writeString($token);
     }
 
     public function hash(string $token): string

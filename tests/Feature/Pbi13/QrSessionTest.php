@@ -4,11 +4,12 @@ namespace Tests\Feature\Pbi13;
 
 use App\Models\AktivitasPemilahan;
 use App\Models\SesiPembuangan;
+use App\Services\QrTokenService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Feature\Pbi13\Concerns\SiapkanPerangkat;
 use Tests\TestCase;
 
-/** TC-13-02, 09, 10, 14 (TC-13-01 diuji bersama halaman QR ID di tahap 7). */
+/** TC-13-01, 02, 09, 10, 14. */
 class QrSessionTest extends TestCase
 {
     use RefreshDatabase;
@@ -18,6 +19,79 @@ class QrSessionTest extends TestCase
     {
         parent::setUp();
         $this->siapkanPerangkat();
+    }
+
+    public function test_tc_13_01_menampilkan_qr_id_sementara_dengan_hitung_mundur(): void
+    {
+        $this->withoutVite();
+        $this->freezeSecond();
+
+        $this->actingAs($this->pengguna)
+            ->get('/qr-id')
+            ->assertOk()
+            ->assertSee('QR ID Saya')
+            ->assertSee('<svg', false)
+            ->assertSee('data-sisa-detik="'.config('pilahku.qr_ttl').'"', false)
+            ->assertSee('02:00')
+            ->assertSee('Buat Ulang QR');
+
+        // Token di balik gambar QR milik pengguna ini dan berlaku selama qr_ttl.
+        $data = app(QrTokenService::class)->baca(session('qr_id.token'));
+        $this->assertSame($this->pengguna->id_pengguna, $data['id_pengguna']);
+        $this->assertSame(now()->addSeconds(config('pilahku.qr_ttl'))->getTimestamp(), $data['berlaku_hingga']);
+    }
+
+    public function test_tc_13_01_hitung_mundur_berkurang_dan_qr_yang_sama_dipakai_selama_berlaku(): void
+    {
+        $this->withoutVite();
+        $this->freezeSecond();
+
+        $this->actingAs($this->pengguna)->get('/qr-id');
+        $tokenPertama = session('qr_id.token');
+
+        $this->travel(30)->seconds();
+        $this->get('/qr-id')->assertSee('data-sisa-detik="90"', false);
+        $this->assertSame($tokenPertama, session('qr_id.token'));
+    }
+
+    public function test_tc_13_01_qr_kedaluwarsa_diganti_baru_saat_halaman_dibuka_lagi(): void
+    {
+        $this->withoutVite();
+
+        $this->actingAs($this->pengguna)->get('/qr-id');
+        $tokenLama = session('qr_id.token');
+
+        $this->travel(config('pilahku.qr_ttl') + 1)->seconds();
+        $this->get('/qr-id')->assertOk();
+
+        $this->assertNotSame($tokenLama, session('qr_id.token'));
+    }
+
+    public function test_tc_13_01_buat_ulang_menerbitkan_qr_baru(): void
+    {
+        $this->withoutVite();
+
+        $this->actingAs($this->pengguna)->get('/qr-id');
+        $tokenLama = session('qr_id.token');
+
+        $this->post('/qr-id/regenerate')->assertRedirect('/qr-id');
+
+        $this->assertNotSame($tokenLama, session('qr_id.token'));
+    }
+
+    public function test_tc_13_01_qr_yang_sudah_dipindai_diganti_baru_dan_qr_halaman_bisa_dipindai(): void
+    {
+        $this->withoutVite();
+
+        $this->actingAs($this->pengguna)->get('/qr-id');
+        $token = session('qr_id.token');
+
+        // QR dari halaman dapat dipindai perangkat (alur nyata end-to-end).
+        $this->scan($token)->assertOk();
+
+        // Setelah dipakai, membuka halaman lagi tidak menampilkan QR yang sama.
+        $this->get('/qr-id')->assertOk();
+        $this->assertNotSame($token, session('qr_id.token'));
     }
 
     public function test_tc_13_02_pindai_qr_valid_membuat_sesi_aktif(): void
