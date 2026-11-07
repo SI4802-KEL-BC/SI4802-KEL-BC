@@ -19,6 +19,7 @@
     kode: '',
     warna_label: 'bg-emerald-500',
     deskripsi: '',
+    karakteristik: '',
     cara_penanganan: '',
     detailKategori: null,
 
@@ -29,6 +30,7 @@
         this.kode = '';
         this.warna_label = 'bg-emerald-500';
         this.deskripsi = '';
+        this.karakteristik = '';
         this.cara_penanganan = '';
     },
 
@@ -39,6 +41,7 @@
         this.kode = k.kode;
         this.warna_label = k.warna_label || 'bg-emerald-500';
         this.deskripsi = k.deskripsi || '';
+        this.karakteristik = k.karakteristik || '';
         this.cara_penanganan = k.cara_penanganan || '';
         document.getElementById('formKategoriPanel').scrollIntoView({behavior: 'smooth'});
     }
@@ -190,6 +193,13 @@
                     <label class="font-bold text-slate-700">Deskripsi</label>
                     <textarea name="deskripsi" x-model="deskripsi" rows="2"
                               class="w-full rounded-xl border border-slate-200 bg-white p-3 text-xs font-medium text-slate-800 focus:outline-none focus:border-emerald-500" placeholder="Deskripsi kategori..."></textarea>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="font-bold text-slate-700">Contoh Sampah</label>
+                    <input type="text" name="karakteristik" x-model="karakteristik"
+                           class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-emerald-500" placeholder="Contoh: Kulit buah, daun kering, sisa nasi">
+                    <p class="text-[11px] text-slate-400">Pisahkan setiap contoh dengan koma.</p>
                 </div>
 
                 {{-- Cara Penanganan --}}
