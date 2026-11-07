@@ -1,11 +1,15 @@
 <?php
 
 use App\Http\Controllers\Admin\SchedulePageController;
+use App\Http\Controllers\PublicScheduleController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/jadwal-pengangkutan', [PublicScheduleController::class, 'index'])
+    ->name('schedules.public');
 
 Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/jadwal-pengangkutan', [SchedulePageController::class, 'index'])
