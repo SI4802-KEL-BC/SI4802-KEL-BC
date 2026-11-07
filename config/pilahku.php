@@ -8,10 +8,11 @@ return [
     |--------------------------------------------------------------------------
     */
 
-    // Masa berlaku QR ID (detik). QR hanya bisa dipakai sekali.
-    'qr_ttl' => (int) env('PILAHKU_QR_TTL', 120),
+    // Alamat dasar yang dikodekan di QR tong (QR berisi {qr_base_url}/pindai/{kode_perangkat}).
+    // Kosong = pakai alamat situs saat ini. Isi untuk uji dari HP (mis. http://192.168.1.10:8000) atau domain produksi.
+    'qr_base_url' => env('PILAHKU_QR_BASE_URL'),
 
-    // Batas waktu sesi menunggu foto setelah QR dipindai (detik, default 5 menit).
+    // Batas waktu sesi menunggu foto setelah QR tong dipindai (detik, default 5 menit).
     'session_ttl' => (int) env('PILAHKU_SESSION_TTL', 300),
 
     // Skor keyakinan di bawah nilai ini => hasil tahap 1 "Ragu" (verifikasi manual Admin).
@@ -36,6 +37,8 @@ return [
         'cardboard' => 'Kertas',
         'organik' => 'Organik',
         'biodegradable' => 'Organik',
+        'metal' => 'Logam',
+        'glass' => 'Kaca',
     ],
 
 ];

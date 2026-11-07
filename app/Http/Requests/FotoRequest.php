@@ -14,7 +14,7 @@ class FotoRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'token_qr' => ['required', 'string'],
+            'kode_perangkat' => ['required', 'string', 'max:30'],
             'foto' => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
         ];
     }

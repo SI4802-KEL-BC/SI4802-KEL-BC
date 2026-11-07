@@ -24,6 +24,22 @@ class PilahkuDemoSeeder extends Seeder
 {
     public const PASSWORD = 'password';
 
+    /** nama_kategori => [kode, warna_label, poin_per_satuan] */
+    private const KATEGORI = [
+        'Organik' => ['ORG', '#22c55e', 5],
+        'Plastik' => ['PLS', '#3b82f6', 10],
+        'Kertas' => ['KRT', '#eab308', 5],
+        'Logam' => ['LGM', '#64748b', 15],
+        'Kaca' => ['KCA', '#14b8a6', 15],
+    ];
+
+    /** kode_perangkat => [nama_lokasi, kode_titik, area, kategori yang diterima] */
+    private const LOKASI = [
+        'DEV-0001' => ['Kantin TULT', 'T-01', 'Kantin', ['Plastik', 'Kertas']],
+        'DEV-0002' => ['Gedung Kuliah Umum', 'T-02', 'Akademik', ['Organik']],
+        'DEV-0003' => ['Gedung Rektorat', 'T-03', 'Administrasi', ['Logam', 'Kaca', 'Plastik']],
+    ];
+
     public function run(): void
     {
         $user = Pengguna::updateOrCreate(
@@ -36,19 +52,29 @@ class PilahkuDemoSeeder extends Seeder
             ['nama_lengkap' => 'Admin Uji', 'kata_sandi' => Hash::make(self::PASSWORD), 'peran' => 'Admin', 'status_akun' => 'aktif'],
         );
 
-        $plastik = $this->kategori('Plastik', 'PLS', '#3b82f6');
-        $kertas = $this->kategori('Kertas', 'KRT', '#eab308');
-        $organik = $this->kategori('Organik', 'ORG', '#22c55e');
+        // Kategori (dibuat hanya bila belum ada, agar data milik SCRUM-27 tidak ditimpa) + aturan reward aktif.
+        $kategori = [];
+        foreach (self::KATEGORI as $nama => [$kode, $warna, $poin]) {
+            $kategori[$nama] = $this->kategori($nama, $kode, $warna);
+            AturanReward::updateOrCreate(
+                ['id_kategori' => $kategori[$nama]->id_kategori],
+                ['poin_per_satuan' => $poin, 'status' => 'aktif'],
+            );
+        }
+        [$plastik, $kertas, $organik] = [$kategori['Plastik'], $kategori['Kertas'], $kategori['Organik']];
 
-        AturanReward::firstOrCreate(['id_kategori' => $plastik->id_kategori], ['poin_per_satuan' => 10, 'status' => 'aktif']);
-        AturanReward::firstOrCreate(['id_kategori' => $kertas->id_kategori], ['poin_per_satuan' => 5, 'status' => 'aktif']);
-
-        // Lokasi hanya menerima Plastik & Kertas (Organik ditolak di titik ini).
-        $lokasi = LokasiTempatSampah::updateOrCreate(
-            ['kode_perangkat' => 'DEV-0001'],
-            ['nama_lokasi' => 'Kantin Pusat', 'kode_titik' => 'T-01', 'area' => 'Kantin', 'status' => 'aktif'],
-        );
-        $lokasi->kategoriDiterima()->syncWithoutDetaching([$plastik->id_kategori, $kertas->id_kategori]);
+        // Lokasi + kode perangkat; kategori yang diterima di-sync persis sesuai daftar (aman dijalankan ulang).
+        $lokasiDemo = [];
+        foreach (self::LOKASI as $kodePerangkat => [$namaLokasi, $kodeTitik, $area, $diterima]) {
+            $lokasiDemo[$kodePerangkat] = LokasiTempatSampah::updateOrCreate(
+                ['kode_perangkat' => $kodePerangkat],
+                ['nama_lokasi' => $namaLokasi, 'kode_titik' => $kodeTitik, 'area' => $area, 'status' => 'aktif'],
+            );
+            $lokasiDemo[$kodePerangkat]->kategoriDiterima()->sync(
+                array_map(fn (string $nama) => $kategori[$nama]->id_kategori, $diterima),
+            );
+        }
+        $lokasi = $lokasiDemo['DEV-0001']; // aktivitas contoh di bawah dibuat di Kantin TULT (menerima Plastik & Kertas)
 
         if (AktivitasPemilahan::where('id_pengguna', $user->id_pengguna)->exists()) {
             return; // aktivitas contoh sudah ada; seeder aman dijalankan ulang

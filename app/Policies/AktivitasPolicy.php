@@ -23,6 +23,18 @@ class AktivitasPolicy
         return $this->pemilik($pengguna, $aktivitas) && $aktivitas->menungguValidasi();
     }
 
+    /** Nama baku Laravel (dipakai view lewat can('update')): sama dengan ubahCatatan. */
+    public function update(Pengguna $pengguna, AktivitasPemilahan $aktivitas): bool
+    {
+        return $this->ubahCatatan($pengguna, $aktivitas);
+    }
+
+    /** Nama baku Laravel (can('delete')): sama dengan batalkan. */
+    public function delete(Pengguna $pengguna, AktivitasPemilahan $aktivitas): bool
+    {
+        return $this->batalkan($pengguna, $aktivitas);
+    }
+
     private function pemilik(Pengguna $pengguna, AktivitasPemilahan $aktivitas): bool
     {
         // Cast agar tidak bergantung pada tipe (int/string) yang dikembalikan driver database.

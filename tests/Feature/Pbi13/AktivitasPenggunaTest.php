@@ -64,7 +64,7 @@ class AktivitasPenggunaTest extends TestCase
             ->assertSee('Botol air mineral')
             ->assertSee('Ragu')
             ->assertSee('plastic')
-            ->assertSee('0.55')
+            ->assertSee('55%')
             ->assertSee('storage/'.$aktivitas->foto_bukti, false)
             ->assertSee('Ubah Catatan')
             ->assertSee('Batalkan');
@@ -90,8 +90,8 @@ class AktivitasPenggunaTest extends TestCase
             ->get(route('aktivitas.show', $aktivitas))
             ->assertOk()
             ->assertSee('Ditolak')
-            ->assertSee('Tahap 2 (Admin)')
-            ->assertSee('Alasan penolakan: Foto tidak jelas');
+            ->assertSee('Verifikasi Admin')
+            ->assertSee('Alasan: Foto tidak jelas');
     }
 
     public function test_tc_13_07_ubah_catatan_saat_menunggu_validasi(): void
@@ -131,12 +131,12 @@ class AktivitasPenggunaTest extends TestCase
         // Halaman detail meminta konfirmasi sebelum membatalkan.
         $this->actingAs($this->pemilik)
             ->get(route('aktivitas.show', $aktivitas))
-            ->assertSee('Batalkan aktivitas?')
+            ->assertSee('Batalkan aktivitas ini?')
             ->assertSee('Ya, Batalkan');
 
         $this->actingAs($this->pemilik)
             ->delete(route('aktivitas.destroy', $aktivitas))
-            ->assertRedirect(route('qr-id.index'))
+            ->assertRedirect(route('pindai.index'))
             ->assertSessionHas('status');
 
         $this->assertModelMissing($aktivitas);
@@ -148,9 +148,9 @@ class AktivitasPenggunaTest extends TestCase
             ->get('/admin/verifikasi')
             ->assertOk()
             ->assertDontSee(route('admin.verifikasi.show', $aktivitas), false)
-            ->assertSee('Tidak ada aktivitas yang perlu diverifikasi.');
+            ->assertSee('Antrean kosong');
         $this->actingAs($admin)
-            ->post(route('admin.verifikasi.proses', $aktivitas), ['aksi' => 'setujui'])
+            ->post(route('admin.verifikasi.proses', $aktivitas), ['keputusan' => 'setujui'])
             ->assertNotFound();
     }
 
@@ -223,8 +223,9 @@ class AktivitasPenggunaTest extends TestCase
     {
         $aktivitas = $this->aktivitasMilik($this->pemilik);
 
-        $this->get('/qr-id')->assertRedirect(route('login'));
-        $this->post('/qr-id/regenerate')->assertRedirect(route('login'));
+        $this->get('/pindai')->assertRedirect(route('login'));
+        $this->get('/pindai/DEV-0001')->assertRedirect(route('login'));
+        $this->post('/pindai', ['kode_perangkat' => 'DEV-0001'])->assertRedirect(route('login'));
         $this->get(route('aktivitas.show', $aktivitas))->assertRedirect(route('login'));
         $this->patch(route('aktivitas.catatan', $aktivitas), ['catatan' => 'x'])->assertRedirect(route('login'));
         $this->delete(route('aktivitas.destroy', $aktivitas))->assertRedirect(route('login'));
@@ -238,7 +239,7 @@ class AktivitasPenggunaTest extends TestCase
 
         $this->get('/admin/verifikasi')->assertRedirect(route('login'));
         $this->get(route('admin.verifikasi.show', $aktivitas))->assertRedirect(route('login'));
-        $this->post(route('admin.verifikasi.proses', $aktivitas), ['aksi' => 'setujui'])->assertRedirect(route('login'));
+        $this->post(route('admin.verifikasi.proses', $aktivitas), ['keputusan' => 'setujui'])->assertRedirect(route('login'));
     }
 
     public function test_tc_13_16_pengguna_biasa_ditolak_403_di_verifikasi_manual(): void
@@ -249,7 +250,7 @@ class AktivitasPenggunaTest extends TestCase
         $this->actingAs($this->pemilik)->get('/admin/verifikasi')->assertForbidden();
         $this->actingAs($this->pemilik)->get(route('admin.verifikasi.show', $aktivitas))->assertForbidden();
         $this->actingAs($this->pemilik)
-            ->post(route('admin.verifikasi.proses', $aktivitas), ['aksi' => 'setujui'])
+            ->post(route('admin.verifikasi.proses', $aktivitas), ['keputusan' => 'setujui'])
             ->assertForbidden();
 
         // Tidak ada perubahan dan tidak ada poin.

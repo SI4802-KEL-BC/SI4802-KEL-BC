@@ -58,7 +58,7 @@ class AktivitasPemilahan extends Model
 
     public function lihatDetail(): self
     {
-        return $this->load(['kategori', 'lokasi', 'verifikasi']);
+        return $this->load(['kategori', 'lokasi', 'sesi', 'verifikasi.verifikator']);
     }
 
     public function ubahCatatan(?string $catatan): void

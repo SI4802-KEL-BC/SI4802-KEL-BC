@@ -15,14 +15,8 @@ class AktivitasController extends Controller
     {
         Gate::authorize('view', $aktivitas);
 
-        $aktivitas->lihatDetail();
-
-        return view('aktivitas.show', [
-            'aktivitas' => $aktivitas,
-            'tahap1' => $aktivitas->verifikasi->firstWhere('tahap', 1),
-            'tahap2' => $aktivitas->verifikasi->firstWhere('tahap', 2),
-            'bisaDiubah' => Gate::allows('ubahCatatan', $aktivitas),
-        ]);
+        // View menghitung sendiri tahap 1/2 dan hak ubah (via AktivitasPolicy) dari relasi yang dimuat ini.
+        return view('aktivitas.show', ['aktivitas' => $aktivitas->lihatDetail()]);
     }
 
     /** PATCH /aktivitas/{aktivitas}/catatan — hanya saat Menunggu Validasi. */
@@ -46,6 +40,6 @@ class AktivitasController extends Controller
 
         $aktivitas->batalkan();
 
-        return redirect()->route('qr-id.index')->with('status', 'Aktivitas berhasil dibatalkan.');
+        return redirect()->route('pindai.index')->with('status', 'Aktivitas berhasil dibatalkan.');
     }
 }

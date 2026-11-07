@@ -29,7 +29,7 @@ class VerifikasiController extends Controller
         return view('admin.verifikasi.index', ['antrean' => $antrean]);
     }
 
-    /** GET /admin/verifikasi/{aktivitas} — foto, label, skor, aksi. */
+    /** GET /admin/verifikasi/{aktivitas} — foto, label, skor, keputusan. */
     public function show(AktivitasPemilahan $aktivitas): View
     {
         $this->pastikanDalamAntrean($aktivitas);
@@ -46,11 +46,11 @@ class VerifikasiController extends Controller
     public function proses(Request $request, AktivitasPemilahan $aktivitas): RedirectResponse
     {
         $data = $request->validate([
-            'aksi' => ['required', 'in:setujui,tolak'],
-            'alasan' => ['nullable', 'required_if:aksi,tolak', 'string', 'max:255'],
+            'keputusan' => ['required', 'in:setujui,tolak'],
+            'alasan' => ['nullable', 'required_if:keputusan,tolak', 'string', 'max:255'],
         ], [
             'alasan.required_if' => 'Alasan wajib diisi',
-            'aksi.in' => 'Aksi tidak dikenal',
+            'keputusan.in' => 'Keputusan tidak dikenal',
         ]);
 
         $admin = $request->user();
@@ -60,7 +60,7 @@ class VerifikasiController extends Controller
             $terkunci = AktivitasPemilahan::whereKey($aktivitas->getKey())->lockForUpdate()->firstOrFail();
             $this->pastikanDalamAntrean($terkunci);
 
-            if ($data['aksi'] === 'setujui') {
+            if ($data['keputusan'] === 'setujui') {
                 $this->setujui($terkunci, $admin, $data['alasan'] ?? null);
             } else {
                 $this->tolak($terkunci, $admin, $data['alasan']);
@@ -69,7 +69,7 @@ class VerifikasiController extends Controller
 
         return redirect()->route('admin.verifikasi.index')->with(
             'status',
-            $data['aksi'] === 'setujui' ? 'Aktivitas disetujui.' : 'Aktivitas ditolak.',
+            $data['keputusan'] === 'setujui' ? 'Aktivitas disetujui.' : 'Aktivitas ditolak.',
         );
     }
 
@@ -78,7 +78,7 @@ class VerifikasiController extends Controller
         // Tanpa kategori tidak ada aturan reward yang bisa dipakai: Admin harus menolak.
         if ($aktivitas->id_kategori === null) {
             throw ValidationException::withMessages([
-                'aksi' => 'Kategori sampah belum teridentifikasi, aktivitas ini tidak dapat disetujui. Silakan tolak dengan alasan.',
+                'keputusan' => 'Kategori sampah belum teridentifikasi, aktivitas ini tidak dapat disetujui. Silakan tolak dengan alasan.',
             ]);
         }
 

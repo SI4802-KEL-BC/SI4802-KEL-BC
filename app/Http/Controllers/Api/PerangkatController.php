@@ -4,44 +4,24 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\FotoRequest;
-use App\Http\Requests\ScanRequest;
 use App\Models\AktivitasPemilahan;
 use App\Models\LokasiTempatSampah;
-use App\Models\Pengguna;
 use App\Models\SesiPembuangan;
-use App\Services\QrTokenService;
 use App\Services\VerifikasiTahap1;
-use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * API untuk kamera/perangkat di tong sampah. Pengguna memindai QR tong (halaman /pindai) sehingga sesi
+ * Aktif sudah ada atas namanya; perangkat hanya mengirim foto untuk sesi aktif di tongnya sendiri.
+ */
 class PerangkatController extends Controller
 {
-    private const PESAN_QR_TIDAK_VALID = 'QR tidak valid atau kedaluwarsa';
+    public function __construct(private readonly VerifikasiTahap1 $tahap1) {}
 
-    public function __construct(
-        private readonly QrTokenService $qr,
-        private readonly VerifikasiTahap1 $tahap1,
-    ) {}
-
-    /** POST /api/perangkat/scan — validasi QR, buat sesi_pembuangan Aktif. */
-    public function scan(ScanRequest $request): JsonResponse
+    /** POST /api/perangkat/foto — simpan aktivitas Menunggu Validasi, sesi Selesai, lalu verifikasi tahap 1. */
+    public function foto(FotoRequest $request): JsonResponse
     {
-        $token = $request->validated('token_qr');
-        $data = $this->qr->baca($token);
-
-        $pengguna = $data ? Pengguna::find($data['id_pengguna']) : null;
-
-        if (! $pengguna || $pengguna->status_akun !== 'aktif') {
-            return $this->tolak(self::PESAN_QR_TIDAK_VALID);
-        }
-
-        $hash = $this->qr->hash($token);
-
-        if (SesiPembuangan::where('token_qr', $hash)->exists()) {
-            return $this->tolak(self::PESAN_QR_TIDAK_VALID); // sudah dipakai
-        }
-
         $lokasi = LokasiTempatSampah::where('kode_perangkat', $request->validated('kode_perangkat'))
             ->where('status', 'aktif')
             ->first();
@@ -50,58 +30,54 @@ class PerangkatController extends Controller
             return $this->tolak('Perangkat tidak terdaftar');
         }
 
-        try {
-            $sesi = SesiPembuangan::buatSesi($pengguna->id_pengguna, $lokasi->id_lokasi, $hash);
-        } catch (UniqueConstraintViolationException) {
-            return $this->tolak(self::PESAN_QR_TIDAK_VALID); // balapan pemakaian ganda
-        }
-
-        return response()->json([
-            'message' => 'QR valid, sesi pembuangan dimulai',
-            'data' => [
-                'id_sesi' => $sesi->id_sesi,
-                'status_sesi' => $sesi->status_sesi,
-                'kedaluwarsa_pada' => $sesi->kedaluwarsa_pada->toIso8601String(),
-            ],
-        ]);
-    }
-
-    /** POST /api/perangkat/foto — simpan aktivitas Menunggu Validasi, sesi Selesai. */
-    public function foto(FotoRequest $request): JsonResponse
-    {
-        $sesi = SesiPembuangan::where('token_qr', $this->qr->hash($request->validated('token_qr')))->first();
+        $sesi = SesiPembuangan::where('id_lokasi', $lokasi->id_lokasi)
+            ->where('status_sesi', SesiPembuangan::AKTIF)
+            ->where('kedaluwarsa_pada', '>', now())
+            ->latest('waktu_scan')
+            ->first();
 
         if (! $sesi) {
-            return $this->tolak(self::PESAN_QR_TIDAK_VALID);
+            // Sesi yang menunggu foto tetapi sudah lewat batas waktu ditandai Kedaluwarsa (tanpa aktivitas).
+            $lewat = SesiPembuangan::where('id_lokasi', $lokasi->id_lokasi)
+                ->where('status_sesi', SesiPembuangan::AKTIF)
+                ->where('kedaluwarsa_pada', '<=', now())
+                ->get();
+            $lewat->each->kedaluwarsakan();
+
+            return $this->tolak($lewat->isNotEmpty()
+                ? 'Sesi pembuangan telah kedaluwarsa'
+                : 'Tidak ada sesi aktif di tong ini. Pindai QR tong terlebih dahulu');
         }
 
-        if ($sesi->status_sesi !== SesiPembuangan::AKTIF) {
-            return $this->tolak('Sesi sudah tidak aktif');
-        }
+        $hasil = DB::transaction(function () use ($request, $sesi) {
+            // Cek ulang dengan kunci baris agar dua foto bersamaan tidak membuat dua aktivitas untuk satu sesi.
+            $terkunci = SesiPembuangan::whereKey($sesi->id_sesi)->lockForUpdate()->first();
+            if (! $terkunci || $terkunci->status_sesi !== SesiPembuangan::AKTIF) {
+                return null;
+            }
 
-        if ($sesi->sudahLewatBatas()) {
-            $sesi->kedaluwarsakan();
-
-            return $this->tolak('Sesi pembuangan telah kedaluwarsa');
-        }
-
-        [$aktivitas, $verifikasi] = DB::transaction(function () use ($request, $sesi) {
             $path = $request->file('foto')->store('bukti', 'public');
 
             $aktivitas = AktivitasPemilahan::simpan([
-                'id_pengguna' => $sesi->id_pengguna,
-                'id_lokasi' => $sesi->id_lokasi,
-                'id_sesi' => $sesi->id_sesi,
+                'id_pengguna' => $terkunci->id_pengguna,
+                'id_lokasi' => $terkunci->id_lokasi,
+                'id_sesi' => $terkunci->id_sesi,
                 'foto_bukti' => $path,
             ]);
 
-            $sesi->selesaikan();
+            $terkunci->selesaikan();
 
             // Verifikasi otomatis tahap 1 (Valid / Tidak Valid / Ragu).
             $verifikasi = $this->tahap1->proses($aktivitas);
 
             return [$aktivitas->refresh(), $verifikasi];
         });
+
+        if (! $hasil) {
+            return $this->tolak('Sesi sudah tidak aktif');
+        }
+
+        [$aktivitas, $verifikasi] = $hasil;
 
         return response()->json([
             'message' => 'Foto diterima, verifikasi tahap 1 selesai',

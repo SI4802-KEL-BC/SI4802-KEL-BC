@@ -5,13 +5,15 @@ namespace Tests\Feature\Pbi13\Concerns;
 use App\Models\KategoriSampah;
 use App\Models\LokasiTempatSampah;
 use App\Models\Pengguna;
-use App\Services\QrTokenService;
 use App\Services\VerifikasiOtomatisService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Testing\TestResponse;
 
-/** Pembantu bersama untuk test API perangkat PBI-13. */
+/**
+ * Pembantu bersama test PBI-13: pengguna memindai QR tong (/pindai/{kode}), lalu kamera tong
+ * mengirim foto ke /api/perangkat/foto untuk tongnya.
+ */
 trait SiapkanPerangkat
 {
     protected Pengguna $pengguna;
@@ -33,23 +35,18 @@ trait SiapkanPerangkat
         return ['X-Device-Token' => 'token-test'];
     }
 
-    protected function buatQr(?Pengguna $pengguna = null): string
+    /** Pengguna memindai QR yang tertempel di tong: membuka URL /pindai/{kode_perangkat}. */
+    protected function pindai(?Pengguna $pengguna = null, ?string $kodePerangkat = null): TestResponse
     {
-        return app(QrTokenService::class)->buat($pengguna ?? $this->pengguna)['token'];
+        return $this->actingAs($pengguna ?? $this->pengguna)
+            ->get('/pindai/'.($kodePerangkat ?? $this->lokasi->kode_perangkat));
     }
 
-    protected function scan(string $token, ?string $kodePerangkat = null, ?array $headers = null): TestResponse
-    {
-        return $this->postJson('/api/perangkat/scan', [
-            'token_qr' => $token,
-            'kode_perangkat' => $kodePerangkat ?? $this->lokasi->kode_perangkat,
-        ], $headers ?? $this->headerPerangkat());
-    }
-
-    protected function kirimFoto(string $token, ?array $headers = null, ?UploadedFile $foto = null): TestResponse
+    /** Kamera tong mengirim foto untuk tongnya sendiri (bukan untuk pengguna tertentu). */
+    protected function kirimFoto(?string $kodePerangkat = null, ?array $headers = null, ?UploadedFile $foto = null): TestResponse
     {
         return $this->postJson('/api/perangkat/foto', [
-            'token_qr' => $token,
+            'kode_perangkat' => $kodePerangkat ?? $this->lokasi->kode_perangkat,
             'foto' => $foto ?? $this->fotoPalsu(),
         ], $headers ?? $this->headerPerangkat());
     }

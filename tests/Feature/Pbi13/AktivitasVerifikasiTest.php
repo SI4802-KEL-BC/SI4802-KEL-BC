@@ -42,13 +42,12 @@ class AktivitasVerifikasiTest extends TestCase
         $this->lokasiMenerima($this->plastik); // lokasi uji hanya menerima Plastik
     }
 
-    /** Jalankan alur lengkap perangkat: scan lalu kirim foto. */
+    /** Alur lengkap: pengguna memindai QR tong, lalu kamera tong mengirim foto. */
     private function scanDanKirimFoto(): TestResponse
     {
-        $token = $this->buatQr();
-        $this->scan($token)->assertOk();
+        $this->pindai()->assertRedirect(route('pindai.index'));
 
-        return $this->kirimFoto($token);
+        return $this->kirimFoto();
     }
 
     public function test_tc_13_03_foto_membuat_aktivitas_menunggu_validasi_dan_verifikasi_tahap_1(): void
@@ -82,21 +81,20 @@ class AktivitasVerifikasiTest extends TestCase
 
     public function test_tc_13_03_foto_bukan_gambar_ditolak_tanpa_aktivitas(): void
     {
-        $token = $this->buatQr();
-        $this->scan($token)->assertOk();
+        $this->pindai()->assertRedirect();
 
-        $this->kirimFoto($token, null, UploadedFile::fake()->create('dokumen.pdf', 10, 'application/pdf'))
+        $this->kirimFoto(null, null, UploadedFile::fake()->create('dokumen.pdf', 10, 'application/pdf'))
             ->assertStatus(422);
 
         $this->assertSame(0, AktivitasPemilahan::count());
         $this->assertSame(SesiPembuangan::AKTIF, SesiPembuangan::sole()->status_sesi);
     }
 
-    public function test_tc_13_03_foto_untuk_qr_yang_belum_dipindai_ditolak(): void
+    public function test_tc_13_03_foto_untuk_tong_yang_belum_dipindai_ditolak(): void
     {
-        $this->kirimFoto($this->buatQr())
+        $this->kirimFoto()
             ->assertStatus(422)
-            ->assertJsonPath('message', 'QR tidak valid atau kedaluwarsa');
+            ->assertJsonPath('message', 'Tidak ada sesi aktif di tong ini. Pindai QR tong terlebih dahulu');
 
         $this->assertSame(0, AktivitasPemilahan::count());
     }
@@ -104,11 +102,10 @@ class AktivitasVerifikasiTest extends TestCase
     public function test_tc_13_03_foto_kedua_untuk_sesi_yang_sama_ditolak(): void
     {
         $this->mockIdentifikasi('plastic', 0.55);
-        $token = $this->buatQr();
-        $this->scan($token)->assertOk();
+        $this->pindai()->assertRedirect();
 
-        $this->kirimFoto($token)->assertCreated();
-        $this->kirimFoto($token)->assertStatus(422);
+        $this->kirimFoto()->assertCreated();
+        $this->kirimFoto()->assertStatus(422); // sesi sudah Selesai: tidak ada sesi aktif lagi
 
         $this->assertSame(1, AktivitasPemilahan::count());
     }
@@ -224,10 +221,10 @@ class AktivitasVerifikasiTest extends TestCase
         $this->actingAs($this->admin)
             ->get('/admin/verifikasi')
             ->assertOk()
-            ->assertSee('Daftar Verifikasi Manual')
+            ->assertSee('Dalam antrean')
             ->assertSee($this->pengguna->nama_lengkap)
             ->assertSee('plastic')
-            ->assertSee('0.55')
+            ->assertSee('55%')
             ->assertSee(route('admin.verifikasi.show', $aktivitas), false);
 
         // Detail verifikasi: foto, label, skor, tombol Setujui / Tolak.
@@ -241,7 +238,7 @@ class AktivitasVerifikasiTest extends TestCase
             ->assertSee('Tolak');
 
         $this->actingAs($this->admin)
-            ->post(route('admin.verifikasi.proses', $aktivitas), ['aksi' => 'setujui'])
+            ->post(route('admin.verifikasi.proses', $aktivitas), ['keputusan' => 'setujui'])
             ->assertRedirect(route('admin.verifikasi.index'))
             ->assertSessionHas('status');
 
@@ -267,7 +264,7 @@ class AktivitasVerifikasiTest extends TestCase
         $aktivitas = $this->aktivitasRagu();
 
         $this->actingAs($this->admin)
-            ->post(route('admin.verifikasi.proses', $aktivitas), ['aksi' => 'tolak', 'alasan' => 'Foto tidak jelas'])
+            ->post(route('admin.verifikasi.proses', $aktivitas), ['keputusan' => 'tolak', 'alasan' => 'Foto tidak jelas'])
             ->assertRedirect(route('admin.verifikasi.index'));
 
         $aktivitas->refresh();
@@ -289,7 +286,7 @@ class AktivitasVerifikasiTest extends TestCase
         foreach ([null, '', '   '] as $alasanKosong) {
             $this->actingAs($this->admin)
                 ->from(route('admin.verifikasi.show', $aktivitas))
-                ->post(route('admin.verifikasi.proses', $aktivitas), ['aksi' => 'tolak', 'alasan' => $alasanKosong])
+                ->post(route('admin.verifikasi.proses', $aktivitas), ['keputusan' => 'tolak', 'alasan' => $alasanKosong])
                 ->assertRedirect(route('admin.verifikasi.show', $aktivitas))
                 ->assertSessionHasErrors(['alasan' => 'Alasan wajib diisi']);
         }
@@ -303,7 +300,7 @@ class AktivitasVerifikasiTest extends TestCase
         $this->actingAs($this->admin)
             ->from(route('admin.verifikasi.show', $aktivitas))
             ->followingRedirects()
-            ->post(route('admin.verifikasi.proses', $aktivitas), ['aksi' => 'tolak'])
+            ->post(route('admin.verifikasi.proses', $aktivitas), ['keputusan' => 'tolak'])
             ->assertSee('Alasan wajib diisi');
     }
 
@@ -312,19 +309,19 @@ class AktivitasVerifikasiTest extends TestCase
         $aktivitas = $this->aktivitasRagu();
 
         $this->actingAs($this->admin)
-            ->post(route('admin.verifikasi.proses', $aktivitas), ['aksi' => 'setujui'])
+            ->post(route('admin.verifikasi.proses', $aktivitas), ['keputusan' => 'setujui'])
             ->assertSessionHasNoErrors();
 
         $this->assertSame(AktivitasPemilahan::TERVERIFIKASI, $aktivitas->fresh()->status_verifikasi);
     }
 
-    public function test_aksi_tidak_dikenal_ditolak(): void
+    public function test_keputusan_tidak_dikenal_ditolak(): void
     {
         $aktivitas = $this->aktivitasRagu();
 
         $this->actingAs($this->admin)
-            ->post(route('admin.verifikasi.proses', $aktivitas), ['aksi' => 'hapus'])
-            ->assertSessionHasErrors('aksi');
+            ->post(route('admin.verifikasi.proses', $aktivitas), ['keputusan' => 'hapus'])
+            ->assertSessionHasErrors('keputusan');
 
         $this->assertSame(AktivitasPemilahan::MENUNGGU, $aktivitas->fresh()->status_verifikasi);
     }
@@ -357,7 +354,7 @@ class AktivitasVerifikasiTest extends TestCase
         $this->actingAs($this->admin)
             ->get('/admin/verifikasi')
             ->assertOk()
-            ->assertSee('Tidak ada aktivitas yang perlu diverifikasi.');
+            ->assertSee('Antrean kosong');
     }
 
     public function test_aktivitas_yang_bukan_antrean_tidak_bisa_dilihat_atau_diproses_admin(): void
@@ -367,7 +364,7 @@ class AktivitasVerifikasiTest extends TestCase
 
         $this->actingAs($this->admin)->get(route('admin.verifikasi.show', $valid))->assertNotFound();
         $this->actingAs($this->admin)
-            ->post(route('admin.verifikasi.proses', $valid), ['aksi' => 'tolak', 'alasan' => 'x'])
+            ->post(route('admin.verifikasi.proses', $valid), ['keputusan' => 'tolak', 'alasan' => 'x'])
             ->assertNotFound();
 
         $this->assertSame(AktivitasPemilahan::TERVERIFIKASI, $valid->fresh()->status_verifikasi);
@@ -377,9 +374,9 @@ class AktivitasVerifikasiTest extends TestCase
     {
         $aktivitas = $this->aktivitasRagu();
 
-        $this->actingAs($this->admin)->post(route('admin.verifikasi.proses', $aktivitas), ['aksi' => 'setujui']);
+        $this->actingAs($this->admin)->post(route('admin.verifikasi.proses', $aktivitas), ['keputusan' => 'setujui']);
         $this->actingAs($this->admin)
-            ->post(route('admin.verifikasi.proses', $aktivitas), ['aksi' => 'setujui'])
+            ->post(route('admin.verifikasi.proses', $aktivitas), ['keputusan' => 'setujui'])
             ->assertNotFound();
 
         $this->assertSame(1, TransaksiPoin::count());
@@ -395,7 +392,7 @@ class AktivitasVerifikasiTest extends TestCase
         $this->actingAs($this->admin)->get('/admin/verifikasi')
             ->assertDontSee(route('admin.verifikasi.show', $aktivitas), false);
         $this->actingAs($this->admin)
-            ->post(route('admin.verifikasi.proses', $aktivitas), ['aksi' => 'setujui'])
+            ->post(route('admin.verifikasi.proses', $aktivitas), ['keputusan' => 'setujui'])
             ->assertNotFound();
         $this->assertSame(0, TransaksiPoin::count());
     }
@@ -408,13 +405,13 @@ class AktivitasVerifikasiTest extends TestCase
         $this->assertNull($aktivitas->id_kategori);
 
         $this->actingAs($this->admin)
-            ->post(route('admin.verifikasi.proses', $aktivitas), ['aksi' => 'setujui'])
-            ->assertSessionHasErrors('aksi');
+            ->post(route('admin.verifikasi.proses', $aktivitas), ['keputusan' => 'setujui'])
+            ->assertSessionHasErrors('keputusan');
         $this->assertSame(AktivitasPemilahan::MENUNGGU, $aktivitas->fresh()->status_verifikasi);
         $this->assertSame(0, VerifikasiSampah::where('tahap', VerifikasiSampah::TAHAP_MANUAL)->count());
 
         $this->actingAs($this->admin)
-            ->post(route('admin.verifikasi.proses', $aktivitas), ['aksi' => 'tolak', 'alasan' => 'Jenis sampah tidak dikenali'])
+            ->post(route('admin.verifikasi.proses', $aktivitas), ['keputusan' => 'tolak', 'alasan' => 'Jenis sampah tidak dikenali'])
             ->assertSessionHasNoErrors();
         $this->assertSame(AktivitasPemilahan::DITOLAK, $aktivitas->fresh()->status_verifikasi);
     }

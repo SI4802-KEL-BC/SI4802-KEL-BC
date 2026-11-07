@@ -40,6 +40,10 @@ class AktivitasPolicyTest extends TestCase
         $this->assertSame($lihat, Gate::forUser($pemilik)->allows('view', $aktivitas));
         $this->assertSame($ubah, Gate::forUser($pemilik)->allows('ubahCatatan', $aktivitas));
         $this->assertSame($batal, Gate::forUser($pemilik)->allows('batalkan', $aktivitas));
+
+        // Nama baku Laravel yang dipakai view (can('update')) harus identik dengan ubahCatatan/batalkan.
+        $this->assertSame($ubah, Gate::forUser($pemilik)->allows('update', $aktivitas));
+        $this->assertSame($batal, Gate::forUser($pemilik)->allows('delete', $aktivitas));
     }
 
     /** @return array<string, array{string, string}> */
