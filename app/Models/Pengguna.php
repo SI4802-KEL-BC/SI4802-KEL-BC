@@ -5,11 +5,13 @@ namespace App\Models;
 use Database\Factories\PenggunaFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
 /** STUB PBI-13: hapus saat model pengguna milik teman masuk main. */
 class Pengguna extends Authenticatable
 {
     use HasFactory;
+    use Notifiable;
 
     protected $table = 'pengguna';
 
@@ -22,6 +24,12 @@ class Pengguna extends Authenticatable
     protected static function newFactory(): PenggunaFactory
     {
         return PenggunaFactory::new();
+    }
+
+    /** PBI-15: tujuan email notifikasi (kolom email_kampus). */
+    public function routeNotificationForMail(): string
+    {
+        return $this->email_kampus;
     }
 
     public function getAuthPassword(): string

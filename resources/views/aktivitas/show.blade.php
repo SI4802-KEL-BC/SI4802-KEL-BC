@@ -11,10 +11,10 @@
 @php
     $kode = 'AKT-' . str_pad($aktivitas->id_aktivitas, 4, '0', STR_PAD_LEFT);
     $status = $aktivitas->status_verifikasi;
+    $info = $aktivitas->lihatStatus(); // PBI-15
     $menunggu = $status === 'Menunggu Validasi';
     $bolehUbah = $menunggu && auth()->user()?->can('update', $aktivitas);
     $v1 = $aktivitas->verifikasi->firstWhere('tahap', 1);
-    $v2 = $aktivitas->verifikasi->firstWhere('tahap', 2);
     $ragu = $v1 && $v1->hasil === 'Ragu';
     $warnaKategori = $aktivitas->kategori->warna_label ?? '#94A3B8';
 @endphp
@@ -59,7 +59,7 @@
     <div class="mt-6 flex items-start gap-3 rounded-2xl border border-[#BBE5CA] bg-[#E8F7EE] px-5 py-4">
         <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#16A34A] text-white">@include('partials.ikon', ['n' => 'centang', 'c' => 'h-4 w-4'])</span>
         <div class="text-sm">
-            <p class="font-semibold text-[#15803D]">Aktivitas terverifikasi · +{{ $aktivitas->poin_diperoleh }} poin</p>
+            <p class="font-semibold text-[#15803D]">Aktivitas terverifikasi · +{{ $info['poin'] }} poin</p>
             <p class="mt-0.5">Terima kasih sudah memilah sampah dengan benar. Poin sudah masuk ke saldomu.</p>
         </div>
     </div>
@@ -125,26 +125,10 @@
             <div>
                 <dt class="text-xs text-[#5B6B62]">Poin</dt>
                 <dd class="mt-1 text-sm font-semibold {{ $status === 'Terverifikasi' ? 'text-[#15803D]' : '' }}">
-                    {{ $status === 'Terverifikasi' ? '+' . $aktivitas->poin_diperoleh : ($status === 'Ditolak' ? '0' : '–') }}
+                    {{ $status === 'Terverifikasi' ? '+' . $info['poin'] : ($status === 'Ditolak' ? '0' : '–') }}
                 </dd>
             </div>
         </dl>
-
-        @if ($v1)
-            <div class="mt-6 rounded-xl bg-[#F6FAF7] p-4">
-                <div class="flex items-center gap-2 text-sm font-semibold">
-                    <span class="text-[#16A34A]">@include('partials.ikon', ['n' => 'kilau', 'c' => 'h-4 w-4'])</span>
-                    Hasil identifikasi otomatis
-                </div>
-                <div class="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
-                    <span>Label: <strong>{{ $v1->label_terdeteksi ?? '-' }}</strong></span>
-                    <span class="flex items-center gap-2">Keyakinan:
-                        <span class="h-1.5 w-24 overflow-hidden rounded-full bg-[#E1EAE4]"><span class="block h-full rounded-full {{ $ragu ? 'bg-[#F59E0B]' : ($v1->hasil === 'Valid' ? 'bg-[#16A34A]' : 'bg-[#DC2626]') }}" style="width: {{ round(($v1->skor_keyakinan ?? 0) * 100) }}%"></span></span>
-                        <strong>{{ round(($v1->skor_keyakinan ?? 0) * 100) }}%</strong>
-                    </span>
-                </div>
-            </div>
-        @endif
 
         <div class="mt-6 border-t border-[#E9F0EC] pt-5">
             <div class="flex items-center justify-between">
@@ -171,49 +155,7 @@
 
     {{-- Kolom kanan --}}
     <div class="space-y-6">
-        <section class="rounded-2xl border border-[#E1EAE4] bg-white p-6">
-            <h2 class="text-base font-semibold">Status Verifikasi</h2>
-            @php
-                $langkah = [
-                    ['QR dipindai', $aktivitas->sesi?->waktu_scan?->format('d M Y, H:i') ?? 'Sesi pembuangan dimulai', 'selesai'],
-                    ['Foto sampah diterima', $aktivitas->tanggal_waktu->format('d M Y, H:i'), 'selesai'],
-                    ['Verifikasi otomatis', $v1 ? ($v1->hasil . ' · ' . ($v1->label_terdeteksi ?? '-')) : 'Sedang diproses', $v1 ? ($ragu ? 'peringatan' : ($v1->hasil === 'Valid' ? 'selesai' : 'gagal')) : 'berjalan'],
-                ];
-                if ($ragu) {
-                    $langkah[] = ['Verifikasi Admin', $v2 ? ($v2->hasil . ($v2->verifikator?->nama_lengkap ? ' · ' . $v2->verifikator->nama_lengkap : '')) : 'Menunggu peninjauan Admin', $v2 ? ($v2->hasil === 'Valid' ? 'selesai' : 'gagal') : 'berjalan'];
-                }
-                $langkah[] = match ($status) {
-                    'Terverifikasi' => ['Hasil: Terverifikasi', '+' . $aktivitas->poin_diperoleh . ' poin ditambahkan', 'selesai'],
-                    'Ditolak' => ['Hasil: Ditolak', 'Tanpa poin', 'gagal'],
-                    default => ['Hasil validasi', 'Poin ditambahkan jika terverifikasi', 'nanti'],
-                };
-                $gayaTitik = [
-                    'selesai' => ['bg-[#16A34A] text-white', 'centang'],
-                    'gagal' => ['bg-[#DC2626] text-white', 'silang'],
-                    'peringatan' => ['bg-[#F59E0B] text-white', 'peringatan'],
-                    'berjalan' => ['bg-[#F59E0B] text-white', 'jam'],
-                    'nanti' => ['bg-[#E8EFEA] text-[#9AAFA2]', null],
-                ];
-            @endphp
-            <ol class="mt-5">
-                @foreach ($langkah as $i => [$judulLangkah, $ketLangkah, $keadaan])
-                    <li class="relative flex gap-3 pb-5 last:pb-0">
-                        @if (! $loop->last)
-                            <span class="absolute top-7 left-[13px] h-[calc(100%-1.5rem)] w-0.5 {{ $keadaan === 'selesai' ? 'bg-[#16A34A]' : 'bg-[#E1EAE4]' }}"></span>
-                        @endif
-                        <span class="relative grid h-7 w-7 shrink-0 place-items-center rounded-full {{ $gayaTitik[$keadaan][0] }}">
-                            @if ($gayaTitik[$keadaan][1])
-                                @include('partials.ikon', ['n' => $gayaTitik[$keadaan][1], 'c' => 'h-3.5 w-3.5'])
-                            @endif
-                        </span>
-                        <div class="pt-0.5">
-                            <p class="text-sm font-semibold {{ $keadaan === 'nanti' ? 'text-[#9AAFA2]' : '' }}">{{ $judulLangkah }}</p>
-                            <p class="text-xs text-[#5B6B62]">{{ $ketLangkah }}</p>
-                        </div>
-                    </li>
-                @endforeach
-            </ol>
-        </section>
+        @include('partials.status-verifikasi', ['aktivitas' => $aktivitas, 'info' => $info])
 
         <section class="rounded-2xl border border-[#E1EAE4] bg-white p-6">
             <h2 class="text-base font-semibold">Yang bisa kamu lakukan</h2>
@@ -271,6 +213,38 @@
     </dialog>
 @endif
 @endsection
+
+{{-- PBI-15: selama Menunggu Validasi, cek status tiap 10 detik; muat ulang saat berubah. --}}
+@if ($menunggu)
+    @push('skrip')
+        <script id="skrip-status-otomatis">
+            (() => {
+                const url = @json(route('aktivitas.status', $aktivitas), JSON_UNESCAPED_SLASHES);
+                const statusAwal = @json($status);
+                let timer = null;
+
+                async function periksa() {
+                    if (document.hidden) return;
+                    try {
+                        const r = await fetch(url, {
+                            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                            credentials: 'same-origin',
+                            cache: 'no-store',
+                        });
+                        // Aktivitas dibatalkan / sesi habis: berhenti memeriksa.
+                        if ([401, 403, 404].includes(r.status)) { clearInterval(timer); return; }
+                        if (!r.ok) return;
+                        const data = await r.json();
+                        if (data.status !== statusAwal) { clearInterval(timer); location.reload(); }
+                    } catch (e) { /* jaringan putus: coba lagi di putaran berikutnya */ }
+                }
+
+                timer = setInterval(periksa, 10000);
+                document.addEventListener('visibilitychange', () => { if (!document.hidden) periksa(); });
+            })();
+        </script>
+    @endpush
+@endif
 
 @if ($errors->has('catatan'))
     @push('skrip')

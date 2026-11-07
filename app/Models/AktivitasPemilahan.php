@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Carbon;
 
 class AktivitasPemilahan extends Model
 {
@@ -59,7 +60,43 @@ class AktivitasPemilahan extends Model
 
     public function lihatDetail(): self
     {
-        return $this->load(['kategori', 'lokasi', 'sesi', 'verifikasi.verifikator']);
+        return $this->load(['kategori', 'lokasi', 'sesi', 'verifikasi.verifikator', 'verifikasiTerakhir.verifikator', 'transaksiPoin']);
+    }
+
+    /**
+     * PBI-15: data status verifikasi siap tampil untuk halaman detail.
+     * Sumber diambil dari verifikasi dengan tahap tertinggi; poin dari transaksi_poin.jumlah_poin.
+     *
+     * @return array{status: string, selesai: bool, ragu: bool, sumber: ?string, nama_admin: ?string,
+     *     label: ?string, skor: ?float, waktu: ?Carbon, poin: ?int, alasan: ?string, info: ?string}
+     */
+    public function lihatStatus(): array
+    {
+        $this->loadMissing(['verifikasi', 'verifikasiTerakhir.verifikator', 'transaksiPoin']);
+
+        $tahap1 = $this->verifikasi->firstWhere('tahap', VerifikasiSampah::TAHAP_OTOMATIS);
+        $terakhir = $this->verifikasiTerakhir;
+        $selesai = in_array($this->status_verifikasi, [self::TERVERIFIKASI, self::DITOLAK], true);
+        $ragu = $tahap1?->hasil === VerifikasiSampah::RAGU;
+        $olehAdmin = $selesai && $terakhir?->tahap === VerifikasiSampah::TAHAP_MANUAL;
+
+        return [
+            'status' => $this->status_verifikasi,
+            'selesai' => $selesai,
+            'ragu' => $ragu,
+            'sumber' => $selesai ? ($olehAdmin ? 'Diverifikasi Admin' : 'Otomatis') : null,
+            'nama_admin' => $olehAdmin ? $terakhir->verifikator?->nama_lengkap : null,
+            'label' => $tahap1?->label_terdeteksi,
+            'skor' => $tahap1?->skor_keyakinan !== null ? (float) $tahap1->skor_keyakinan : null,
+            'waktu' => $selesai ? $terakhir?->waktu_verifikasi : null,
+            'poin' => match ($this->status_verifikasi) {
+                self::TERVERIFIKASI => (int) ($this->transaksiPoin?->jumlah_poin ?? 0),
+                self::DITOLAK => 0,
+                default => null, // Menunggu Validasi: poin belum ada
+            },
+            'alasan' => $this->status_verifikasi === self::DITOLAK ? $this->alasan_penolakan : null,
+            'info' => $selesai ? null : ($ragu ? 'Sedang ditinjau Admin' : 'Sedang diproses'),
+        ];
     }
 
     public function ubahCatatan(?string $catatan): void
@@ -161,6 +198,12 @@ class AktivitasPemilahan extends Model
     public function verifikasi(): HasMany
     {
         return $this->hasMany(VerifikasiSampah::class, 'id_aktivitas', 'id_aktivitas');
+    }
+
+    /** PBI-15: verifikasi dengan tahap tertinggi (2 = Admin bila ada, selain itu 1 = otomatis). */
+    public function verifikasiTerakhir(): HasOne
+    {
+        return $this->hasOne(VerifikasiSampah::class, 'id_aktivitas', 'id_aktivitas')->latestOfMany('tahap');
     }
 
     public function transaksiPoin(): HasOne

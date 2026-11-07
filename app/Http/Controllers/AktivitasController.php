@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\RiwayatAktivitasRequest;
 use App\Models\AktivitasPemilahan;
 use App\Models\KategoriSampah;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -26,6 +27,18 @@ class AktivitasController extends Controller
             'daftarKategori' => KategoriSampah::orderBy('nama_kategori')->get(['id_kategori', 'nama_kategori']),
             'daftarStatus' => [AktivitasPemilahan::MENUNGGU, AktivitasPemilahan::TERVERIFIKASI, AktivitasPemilahan::DITOLAK],
         ]);
+    }
+
+    /** PBI-15 · GET /aktivitas/{aktivitas}/status — JSON {status, poin} untuk pembaruan otomatis (pemilik saja). */
+    public function status(AktivitasPemilahan $aktivitas): JsonResponse
+    {
+        Gate::authorize('view', $aktivitas);
+
+        $info = $aktivitas->lihatStatus();
+
+        return response()
+            ->json(['status' => $info['status'], 'poin' => $info['poin']])
+            ->header('Cache-Control', 'no-store');
     }
 
     /** GET /aktivitas/{aktivitas} — detail aktivitas milik sendiri. */

@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\AktivitasPemilahan;
+use App\Observers\AktivitasPemilahanObserver;
 use App\Policies\AktivitasPolicy;
 use App\Services\MockVerifikasiOtomatisService;
 use App\Services\VerifikasiOtomatisService;
@@ -27,5 +28,8 @@ class AppServiceProvider extends ServiceProvider
     {
         // Nama policy mengikuti spec (AktivitasPolicy), bukan konvensi AktivitasPemilahanPolicy.
         Gate::policy(AktivitasPemilahan::class, AktivitasPolicy::class);
+
+        // PBI-15: notifikasi hasil verifikasi dipicu di satu tempat.
+        AktivitasPemilahan::observe(AktivitasPemilahanObserver::class);
     }
 }
