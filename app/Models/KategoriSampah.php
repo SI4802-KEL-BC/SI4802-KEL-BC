@@ -18,7 +18,7 @@ class KategoriSampah extends Model
         'warna_label',
         'deskripsi',
         'karakteristik',
-        'cara_pembuangan',
+        'cara_penanganan',
         'status',
     ];
 }

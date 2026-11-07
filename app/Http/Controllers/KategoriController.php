@@ -11,8 +11,7 @@ class KategoriController extends Controller
 {
     public function index()
     {
-        // Diubah dari withCount(['jenis', 'jadwal']) menjadi all() agar tidak error
-        $kategoris = KategoriSampah::all();
+        $kategoris = KategoriSampah::orderBy('nama_kategori')->get();
 
         return view('kategori', compact('kategoris'));
     }
@@ -20,7 +19,7 @@ class KategoriController extends Controller
     public function store(Request $request)
     {
         $data = $this->rules($request);
-        $data['status'] = $request->has('status') ? 'aktif' : 'nonaktif';
+        $data['status'] = 'aktif';
         
         KategoriSampah::create($data);
 
@@ -30,8 +29,7 @@ class KategoriController extends Controller
     public function update(Request $request, KategoriSampah $kategori)
     {
         $data = $this->rules($request, $kategori);
-        $data['status'] = $request->has('status') ? 'aktif' : 'nonaktif';
-        
+        // Status dikelola lewat aksi aktif/nonaktif agar edit data tidak mengubahnya.
         $kategori->update($data);
 
         return back()->with('status', 'Kategori berhasil diperbarui.');
@@ -50,9 +48,9 @@ class KategoriController extends Controller
             'nama_kategori' => ['required', 'string', 'max:50'],
             'kode' => ['required', 'string', 'max:10', Rule::unique('kategori_sampah', 'kode')->ignore($k?->id_kategori, 'id_kategori')],
             'warna_label' => ['nullable', 'string', 'max:20'],
-            'deskripsi' => ['required', 'string'],
+            'deskripsi' => ['nullable', 'string'],
             'karakteristik' => ['nullable', 'string'],
-            'cara_pembuangan' => ['required', 'string'],
+            'cara_penanganan' => ['nullable', 'string'],
         ]);
     }
 }
