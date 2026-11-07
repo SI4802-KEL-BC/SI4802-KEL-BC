@@ -2,6 +2,12 @@
 
 namespace App\Providers;
 
+use App\Models\AktivitasPemilahan;
+use App\Observers\AktivitasPemilahanObserver;
+use App\Policies\AktivitasPolicy;
+use App\Services\MockVerifikasiOtomatisService;
+use App\Services\VerifikasiOtomatisService;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -11,7 +17,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Model klasifikasi gambar disimulasikan; ganti implementasi bila model nyata tersedia.
+        $this->app->bind(VerifikasiOtomatisService::class, MockVerifikasiOtomatisService::class);
     }
 
     /**
@@ -19,6 +26,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Nama policy mengikuti spec (AktivitasPolicy), bukan konvensi AktivitasPemilahanPolicy.
+        Gate::policy(AktivitasPemilahan::class, AktivitasPolicy::class);
+
+        // PBI-15: notifikasi hasil verifikasi dipicu di satu tempat.
+        AktivitasPemilahan::observe(AktivitasPemilahanObserver::class);
     }
 }
