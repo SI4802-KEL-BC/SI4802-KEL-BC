@@ -15,8 +15,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/pindai', [PindaiController::class, 'index'])->name('pindai.index');
     Route::post('/pindai', [PindaiController::class, 'simpan'])->name('pindai.simpan');
     Route::get('/pindai/{kode}', [PindaiController::class, 'mulai'])->where('kode', '[A-Za-z0-9_-]+')->name('pindai.mulai');
-
+        // PBI-14: riwayat aktivitas milik sendiri.
+    Route::get('/aktivitas', [AktivitasController::class, 'index'])->name('aktivitas.index');
     Route::get('/aktivitas/{aktivitas}', [AktivitasController::class, 'show'])->name('aktivitas.show');
+        // PBI-15: status terbaru (JSON) untuk pembaruan otomatis di halaman detail.
+    Route::get('/aktivitas/{aktivitas}/status', [AktivitasController::class, 'status'])->name('aktivitas.status');
     Route::patch('/aktivitas/{aktivitas}/catatan', [AktivitasController::class, 'ubahCatatan'])->name('aktivitas.catatan');
     Route::delete('/aktivitas/{aktivitas}', [AktivitasController::class, 'destroy'])->name('aktivitas.destroy');
 });
