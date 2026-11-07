@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\RiwayatAktivitasRequest;
 use App\Models\AktivitasPemilahan;
+use App\Models\KategoriSampah;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -10,6 +12,22 @@ use Illuminate\View\View;
 
 class AktivitasController extends Controller
 {
+    /** PBI-14 · GET /aktivitas — riwayat aktivitas milik pengguna login + filter. */
+    public function index(RiwayatAktivitasRequest $request): View
+    {
+        $pengguna = $request->user();
+        $filter = $request->validated();
+
+        return view('aktivitas.index', [
+            'aktivitas' => AktivitasPemilahan::lihatRiwayat($pengguna, $filter),
+            'ringkasan' => AktivitasPemilahan::ringkasan($pengguna),
+            'filter' => $filter,
+            'adaFilter' => collect($filter)->filter(fn ($v) => filled($v))->isNotEmpty(),
+            'daftarKategori' => KategoriSampah::orderBy('nama_kategori')->get(['id_kategori', 'nama_kategori']),
+            'daftarStatus' => [AktivitasPemilahan::MENUNGGU, AktivitasPemilahan::TERVERIFIKASI, AktivitasPemilahan::DITOLAK],
+        ]);
+    }
+
     /** GET /aktivitas/{aktivitas} — detail aktivitas milik sendiri. */
     public function show(AktivitasPemilahan $aktivitas): View
     {

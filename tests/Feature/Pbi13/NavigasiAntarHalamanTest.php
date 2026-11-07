@@ -77,7 +77,7 @@ class NavigasiAntarHalamanTest extends TestCase
     {
         $html = $this->actingAs(Pengguna::factory()->create())->get('/pindai')->assertOk()->getContent();
 
-        foreach (['Beranda', 'Panduan Pemilahan', 'Jadwal Pengangkutan', 'Peta Tempat Sampah', 'Aktivitas Saya', 'Poin Saya', 'Alur Pengelolaan'] as $menu) {
+        foreach (['Beranda', 'Panduan Pemilahan', 'Jadwal Pengangkutan', 'Peta Tempat Sampah', 'Poin Saya', 'Alur Pengelolaan'] as $menu) {
             $this->assertMatchesRegularExpression(
                 '#<a href="\#"[^>]*aria-disabled="true"[^>]*>(?:(?!</a>).)*'.preg_quote($menu, '#').'#s',
                 $html,
@@ -85,6 +85,8 @@ class NavigasiAntarHalamanTest extends TestCase
             );
         }
 
+        // PBI-14: "Aktivitas Saya" sudah aktif dan mengarah ke riwayat.
+        $this->assertMatchesRegularExpression('#<a href="'.preg_quote(url('/aktivitas'), '#').'"(?:(?!aria-disabled)[^>])*>(?:(?!</a>).)*Aktivitas Saya#s', $html);
     }
 
     public function test_menu_pindai_qr_aktif_dan_disorot_di_halaman_pindai(): void

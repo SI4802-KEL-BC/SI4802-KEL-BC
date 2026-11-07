@@ -27,7 +27,7 @@
         ['label' => 'Jadwal Pengangkutan', 'ikon' => 'kalender', 'url' => '#', 'pola' => 'jadwal*', 'siap' => false],
         ['label' => 'Peta Tempat Sampah', 'ikon' => 'pin', 'url' => '#', 'pola' => 'lokasi*', 'siap' => false],
         ['label' => 'Pindai QR', 'ikon' => 'pindai', 'url' => url('/pindai'), 'pola' => 'pindai*', 'siap' => true],
-        ['label' => 'Aktivitas Saya', 'ikon' => 'daftar', 'url' => '#', 'pola' => 'aktivitas*', 'siap' => false],
+        ['label' => 'Aktivitas Saya', 'ikon' => 'daftar', 'url' => url('/aktivitas'), 'pola' => 'aktivitas*', 'siap' => true],
         ['label' => 'Poin Saya', 'ikon' => 'koin', 'url' => '#', 'pola' => 'poin*', 'siap' => false],
         ['label' => 'Alur Pengelolaan', 'ikon' => 'alur', 'url' => '#', 'pola' => 'alur*', 'siap' => false],
     ];

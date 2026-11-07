@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class AktivitasPemilahan extends Model
 {
@@ -85,6 +86,51 @@ class AktivitasPemilahan extends Model
                 ->where('hasil', VerifikasiSampah::RAGU))
             ->whereDoesntHave('verifikasi', fn (Builder $q) => $q
                 ->where('tahap', VerifikasiSampah::TAHAP_MANUAL));
+    }
+
+    /** PBI-14: hanya aktivitas milik pengguna tertentu. */
+    public function scopeMilik(Builder $query, Pengguna $pengguna): Builder
+    {
+        return $query->where('id_pengguna', $pengguna->getKey());
+    }
+
+    /** PBI-14: filter dari/sampai (tanggal, inklusif), kategori (id_kategori), status; semua opsional. */
+    public function scopeFilter(Builder $query, array $filter): Builder
+    {
+        return $query
+            ->when(! empty($filter['dari']), fn (Builder $q) => $q->whereDate('tanggal_waktu', '>=', $filter['dari']))
+            ->when(! empty($filter['sampai']), fn (Builder $q) => $q->whereDate('tanggal_waktu', '<=', $filter['sampai']))
+            ->when(! empty($filter['kategori']), fn (Builder $q) => $q->where('id_kategori', $filter['kategori']))
+            ->when(! empty($filter['status']), fn (Builder $q) => $q->where('status_verifikasi', $filter['status']));
+    }
+
+    /** PBI-14: riwayat milik pengguna, terbaru di atas, eager load kategori & lokasi. */
+    public static function lihatRiwayat(Pengguna $pengguna, array $filter = [], int $perHalaman = 10): LengthAwarePaginator
+    {
+        return static::query()
+            ->with(['kategori', 'lokasi'])
+            ->milik($pengguna)
+            ->filter($filter)
+            ->orderByDesc('tanggal_waktu')
+            ->orderByDesc('id_aktivitas')
+            ->paginate($perHalaman)
+            ->withQueryString();
+    }
+
+    /** PBI-14: ringkasan total & per status (tanpa filter) dalam satu query. */
+    public static function ringkasan(Pengguna $pengguna): array
+    {
+        $per = static::query()->milik($pengguna)
+            ->selectRaw('status_verifikasi, COUNT(*) as jumlah')
+            ->groupBy('status_verifikasi')
+            ->pluck('jumlah', 'status_verifikasi');
+
+        return [
+            'total' => (int) $per->sum(),
+            'terverifikasi' => (int) ($per[self::TERVERIFIKASI] ?? 0),
+            'menunggu' => (int) ($per[self::MENUNGGU] ?? 0),
+            'ditolak' => (int) ($per[self::DITOLAK] ?? 0),
+        ];
     }
 
     public function menungguValidasi(): bool
