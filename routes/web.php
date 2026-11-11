@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\LokasiController;
 use App\Http\Controllers\Admin\QrTongController;
 use App\Http\Controllers\Admin\SchedulePageController;
 use App\Http\Controllers\Admin\VerifikasiController;
@@ -43,6 +44,13 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin/verifikasi')->name('adm
     Route::get('/', [VerifikasiController::class, 'index'])->name('index');
     Route::get('/{aktivitas}', [VerifikasiController::class, 'show'])->name('show');
     Route::post('/{aktivitas}', [VerifikasiController::class, 'proses'])->name('proses');
+});
+
+Route::middleware(['auth', 'role:admin'])->prefix('admin/lokasi')->name('admin.lokasi.')->group(function () {
+    Route::get('/', [LokasiController::class, 'index'])->name('index');
+    Route::post('/', [LokasiController::class, 'store'])->name('store');
+    Route::put('/{lokasi}', [LokasiController::class, 'update'])->name('update');
+    Route::post('/{lokasi}/toggle', [LokasiController::class, 'toggle'])->name('toggle');
 });
 
 Route::get('/kategori', [KategoriController::class, 'index'])->name('kategori.index');
