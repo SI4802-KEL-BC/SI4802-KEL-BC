@@ -1,10 +1,17 @@
 <?php
 
+use App\Http\Controllers\Admin\SchedulePageController;
 use App\Http\Controllers\Admin\QrTongController;
 use App\Http\Controllers\Admin\VerifikasiController;
 use App\Http\Controllers\AktivitasController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\PindaiController;
+use App\Http\Controllers\PublicScheduleController;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+    return view('welcome');
+});
 
 // STUB PBI-13 - diganti saat PBI-01 masuk: halaman login tampilan saja (tanpa POST), agar redirect "auth" berfungsi.
 Route::get('/login', fn () => view('auth.login'))->name('login');
@@ -38,3 +45,17 @@ Route::get('/kategori', [KategoriController::class, 'index'])->name('kategori.in
 Route::post('/kategori', [KategoriController::class, 'store'])->name('kategori.store');
 Route::put('/kategori/{kategori}', [KategoriController::class, 'update'])->name('kategori.update');
 Route::post('/kategori/{kategori}/toggle', [KategoriController::class, 'toggle'])->name('kategori.toggle');
+
+Route::get('/jadwal-pengangkutan', [PublicScheduleController::class, 'index'])
+    ->name('schedules.public');
+
+Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/jadwal-pengangkutan', [SchedulePageController::class, 'index'])
+        ->name('schedules.index');
+    Route::post('/jadwal-pengangkutan', [SchedulePageController::class, 'store'])
+        ->name('schedules.store');
+    Route::put('/jadwal-pengangkutan/{schedule}', [SchedulePageController::class, 'update'])
+        ->name('schedules.update');
+    Route::patch('/jadwal-pengangkutan/{schedule}/status', [SchedulePageController::class, 'updateStatus'])
+        ->name('schedules.status');
+});
