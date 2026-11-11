@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\VerifikasiController;
 use App\Http\Controllers\AktivitasController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\PanduanPemilahanController;
+use App\Http\Controllers\PenggunaController;
 use App\Http\Controllers\PindaiController;
 use App\Http\Controllers\PublicScheduleController;
 use Illuminate\Support\Facades\Route;
@@ -61,4 +62,10 @@ Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
         ->name('schedules.update');
     Route::patch('/jadwal-pengangkutan/{schedule}/status', [SchedulePageController::class, 'updateStatus'])
         ->name('schedules.status');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [PenggunaController::class, 'show'])->name('profil.show');
+    Route::get('/profile/edit', [PenggunaController::class, 'edit'])->name('profil.edit');
+    Route::put('/profile', [PenggunaController::class, 'update'])->name('profil.update');
 });
