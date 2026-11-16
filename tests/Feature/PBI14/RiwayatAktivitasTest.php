@@ -4,6 +4,7 @@ namespace Tests\Feature\PBI14;
 
 use App\Models\AktivitasPemilahan;
 use App\Models\Pengguna;
+use App\Models\TransaksiPoin;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\Feature\PBI14\Concerns\BuatAktivitas;
@@ -49,6 +50,11 @@ class RiwayatAktivitasTest extends TestCase
         $terverifikasi = AktivitasPemilahan::factory()->terverifikasi(15)->create([
             'id_pengguna' => $u->id_pengguna,
             'tanggal_waktu' => '2026-10-05 14:30:00',
+        ]);
+        TransaksiPoin::factory()->create([
+            'id_pengguna' => $u->id_pengguna,
+            'id_aktivitas' => $terverifikasi->id_aktivitas,
+            'jumlah_poin' => 15,
         ]);
         $ditolak = AktivitasPemilahan::factory()->ditolak()->create(['id_pengguna' => $u->id_pengguna, 'tanggal_waktu' => '2026-10-04 09:00:00']);
         $menunggu = AktivitasPemilahan::factory()->create(['id_pengguna' => $u->id_pengguna, 'tanggal_waktu' => '2026-10-03 09:00:00']);
@@ -142,6 +148,41 @@ class RiwayatAktivitasTest extends TestCase
         $this->actingAs($a)->get('/aktivitas?status=Ditolak')
             ->assertOk()
             ->assertViewHas('ringkasan', ['total' => 6, 'terverifikasi' => 2, 'menunggu' => 3, 'ditolak' => 1]);
+    }
+
+    public function test_poin_riwayat_bersumber_dari_transaksi_poin_sama_dengan_detail(): void
+    {
+        $u = Pengguna::factory()->create();
+        // poin_diperoleh sengaja berbeda: angka yang tampil harus dari transaksi_poin.
+        $akt = AktivitasPemilahan::factory()->terverifikasi(99)->create(['id_pengguna' => $u->id_pengguna]);
+        TransaksiPoin::factory()->create([
+            'id_pengguna' => $u->id_pengguna,
+            'id_aktivitas' => $akt->id_aktivitas,
+            'jumlah_poin' => 20,
+        ]);
+
+        $this->actingAs($u)->get('/aktivitas')
+            ->assertOk()
+            ->assertSee('+20')
+            ->assertDontSee('+99');
+
+        $this->actingAs($u)->get(route('aktivitas.show', $akt))
+            ->assertOk()
+            ->assertSee('+20')
+            ->assertDontSee('+99');
+
+        $this->assertSame(20, $akt->fresh()->lihatStatus()['poin']);
+    }
+
+    public function test_terverifikasi_tanpa_transaksi_poin_tampil_nol(): void
+    {
+        $u = Pengguna::factory()->create();
+        AktivitasPemilahan::factory()->terverifikasi(15)->create(['id_pengguna' => $u->id_pengguna]);
+
+        $this->actingAs($u)->get('/aktivitas')
+            ->assertOk()
+            ->assertSee('+0')
+            ->assertDontSee('+15');
     }
 
     public function test_tidak_ada_n_plus_1_query_saat_data_bertambah(): void
