@@ -8,6 +8,7 @@
             <h1>Kelola Lokasi Tempat Sampah</h1>
             <p class="muted">Tambah titik baru, ubah informasi dan kategori yang diterima, atau nonaktifkan lokasi yang sudah tidak tersedia.</p>
         </div>
+        <a href="{{ route('titik.admin.index', ['tambah' => 1] + request()->except(['edit', 'tambah'])) }}" class="btn">+ Tambah Lokasi</a>
     </div>
 
     <div class="split {{ isset($titik) ? 'with-panel' : '' }}">
