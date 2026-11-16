@@ -28,13 +28,13 @@
 <div class="flex flex-wrap items-start justify-between gap-4">
     <div>
         <div class="flex flex-wrap items-center gap-3">
-            <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">Tinjau Aktivitas {{ $kode }}</h1>
+            <h1 class="text-2xl font-semibold tracking-tight text-[#0B2E1D] sm:text-[28px]">Tinjau Aktivitas {{ $kode }}</h1>
             @include('partials.badge-status', ['status' => $aktivitas->status_verifikasi])
         </div>
-        <p class="mt-1 text-sm text-[#5B6B62]">Diajukan oleh {{ $aktivitas->pengguna->nama_lengkap ?? '-' }} pada {{ $aktivitas->tanggal_waktu->translatedFormat('d F Y, H:i') }}</p>
+        <p class="mt-1 text-sm text-[#6B7A72]">Diajukan oleh {{ $aktivitas->pengguna->nama_lengkap ?? '-' }} pada {{ $aktivitas->tanggal_waktu->translatedFormat('d F Y, H:i') }}</p>
     </div>
     <a href="{{ route('admin.verifikasi.index') }}"
-       class="inline-flex h-11 items-center gap-2 rounded-xl border border-[#D5E2DA] bg-white px-5 text-sm font-semibold hover:bg-[#F3F7F4]">
+       class="inline-flex h-11 items-center gap-2 rounded-xl border border-[#D5E2DA] bg-white px-5 text-sm font-semibold hover:bg-[#F5F7F6]">
         ← Kembali ke antrean
     </a>
 </div>
@@ -45,26 +45,26 @@
 
 <div class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
     {{-- Foto + info --}}
-    <section class="self-start rounded-2xl border border-[#E1EAE4] bg-white p-6 shadow-[0_1px_2px_rgba(15,42,28,.04)] sm:p-8">
+    <section class="self-start rounded-xl border border-[#E4EBE7] bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)] p-6 shadow-[0_1px_2px_rgba(15,42,28,.04)] sm:p-8">
         <h2 class="text-lg font-semibold">Foto Sampah</h2>
         @if ($aktivitas->foto_bukti)
             <img src="{{ asset('storage/' . $aktivitas->foto_bukti) }}" alt="Foto {{ $kode }}"
-                 class="mt-4 aspect-[4/3] w-full rounded-xl border border-[#E1EAE4] bg-[#E8F2EC] object-cover">
+                 class="mt-4 aspect-[4/3] w-full rounded-xl border border-[#E4EBE7] bg-[#E8F2EC] object-cover">
         @else
             <div class="mt-4 flex aspect-[4/3] w-full items-center justify-center rounded-xl bg-[#E8F2EC] text-[#5B8A6C]">@include('partials.ikon', ['n' => 'kamera', 'c' => 'h-10 w-10'])</div>
         @endif
 
         <dl class="mt-6 grid grid-cols-2 gap-x-6 gap-y-5 border-t border-[#EEF3F0] pt-5 text-sm">
             <div>
-                <dt class="text-xs text-[#5B6B62]">Pengguna</dt>
+                <dt class="text-xs text-[#6B7A72]">Pengguna</dt>
                 <dd class="mt-0.5 font-medium">{{ $aktivitas->pengguna->nama_lengkap ?? '-' }}</dd>
             </div>
             <div>
-                <dt class="text-xs text-[#5B6B62]">Lokasi</dt>
+                <dt class="text-xs text-[#6B7A72]">Lokasi</dt>
                 <dd class="mt-0.5 font-medium">{{ $aktivitas->lokasi->nama_lokasi ?? '-' }}</dd>
             </div>
             <div class="col-span-2">
-                <dt class="text-xs text-[#5B6B62]">Catatan pengguna</dt>
+                <dt class="text-xs text-[#6B7A72]">Catatan pengguna</dt>
                 <dd class="mt-0.5 leading-relaxed">{{ $aktivitas->catatan ?? '—' }}</dd>
             </div>
         </dl>
@@ -72,19 +72,19 @@
 
     <div class="space-y-6">
         {{-- Hasil identifikasi otomatis --}}
-        <section class="rounded-2xl border border-[#E1EAE4] bg-white p-6">
+        <section class="rounded-xl border border-[#E4EBE7] bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)] p-6">
             <div class="flex items-center justify-between gap-3">
                 <h2 class="text-base font-semibold">Hasil Identifikasi</h2>
                 <span class="rounded-full bg-[#FEF3C7] px-2.5 py-1 text-xs font-semibold text-[#92400E]">Tahap 1: {{ $tahap1?->hasil ?? '—' }}</span>
             </div>
             <dl class="mt-5 space-y-4 text-sm">
                 <div class="flex items-center justify-between gap-3">
-                    <dt class="text-[#5B6B62]">Label terdeteksi</dt>
-                    <dd class="rounded-md bg-[#F3F7F4] px-2 py-0.5 font-mono text-xs font-semibold ring-1 ring-[#E1EAE4]" data-label>{{ $tahap1?->label_terdeteksi ?? '—' }}</dd>
+                    <dt class="text-[#6B7A72]">Label terdeteksi</dt>
+                    <dd class="rounded-md bg-[#F5F7F6] px-2 py-0.5 font-mono text-xs font-semibold ring-1 ring-[#E1EAE4]" data-label>{{ $tahap1?->label_terdeteksi ?? '—' }}</dd>
                 </div>
                 <div>
                     <div class="flex items-center justify-between gap-3">
-                        <dt class="text-[#5B6B62]">Skor keyakinan</dt>
+                        <dt class="text-[#6B7A72]">Skor keyakinan</dt>
                         <dd class="font-mono text-sm font-semibold tabular-nums" data-skor>{{ $skor !== null ? number_format($skor, 2) : '—' }}</dd>
                     </div>
                     <div class="relative mt-2 h-2 rounded-full bg-[#E1EAE4]" role="meter" aria-label="Skor keyakinan"
@@ -93,24 +93,24 @@
                               style="width: {{ $skor !== null ? round(min(1, max(0, $skor)) * 100) : 0 }}%"></span>
                         <span class="absolute -inset-y-1 w-0.5 rounded bg-[#0F2A1C]/50" style="left: {{ round($ambang * 100) }}%"></span>
                     </div>
-                    <p class="mt-1.5 text-xs text-[#5B6B62]">Garis penanda = ambang {{ number_format($ambang, 2) }}</p>
+                    <p class="mt-1.5 text-xs text-[#6B7A72]">Garis penanda = ambang {{ number_format($ambang, 2) }}</p>
                 </div>
                 <div class="flex items-center justify-between gap-3">
-                    <dt class="text-[#5B6B62]">Kategori</dt>
+                    <dt class="text-[#6B7A72]">Kategori</dt>
                     <dd class="font-semibold">{{ $aktivitas->kategori?->nama_kategori ?? 'Belum teridentifikasi' }}</dd>
                 </div>
             </dl>
         </section>
 
         {{-- Keputusan --}}
-        <section class="rounded-2xl border border-[#E1EAE4] bg-white p-6">
+        <section class="rounded-xl border border-[#E4EBE7] bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)] p-6">
             <h2 class="text-base font-semibold">Keputusan Petugas</h2>
-            <p class="mt-1 text-sm text-[#5B6B62]">Setujui untuk memberi poin, atau tolak dengan alasan.</p>
+            <p class="mt-1 text-sm text-[#6B7A72]">Setujui untuk memberi poin, atau tolak dengan alasan.</p>
 
             <form method="POST" action="{{ route('admin.verifikasi.proses', $aktivitas) }}" class="mt-5 space-y-4">
                 @csrf
                 <div>
-                    <label for="alasan" class="block text-sm font-semibold">Alasan <span class="font-normal text-[#5B6B62]">(wajib jika menolak)</span></label>
+                    <label for="alasan" class="block text-sm font-semibold">Alasan <span class="font-normal text-[#6B7A72]">(wajib jika menolak)</span></label>
                     <textarea id="alasan" name="alasan" rows="3" maxlength="255" placeholder="Contoh: foto tidak jelas"
                               class="mt-2 w-full resize-none rounded-xl border border-[#D5E2DA] px-4 py-3 text-sm outline-none placeholder:text-[#9AAFA2] focus:border-[#16A34A] focus:ring-4 focus:ring-[#16A34A]/10">{{ old('alasan') }}</textarea>
                     @error('alasan')

@@ -77,7 +77,7 @@ class NavigasiAntarHalamanTest extends TestCase
     {
         $html = $this->actingAs(Pengguna::factory()->create())->get('/pindai')->assertOk()->getContent();
 
-        foreach (['Beranda', 'Panduan Pemilahan', 'Jadwal Pengangkutan', 'Peta Tempat Sampah', 'Poin Saya', 'Alur Pengelolaan'] as $menu) {
+        foreach (['Peta Tempat Sampah', 'Poin Saya', 'Alur Pengelolaan'] as $menu) {
             $this->assertMatchesRegularExpression(
                 '#<a href="\#"[^>]*aria-disabled="true"[^>]*>(?:(?!</a>).)*'.preg_quote($menu, '#').'#s',
                 $html,
@@ -282,6 +282,52 @@ class NavigasiAntarHalamanTest extends TestCase
             ->assertOk()->assertSee('Ditolak')->assertSee('Alasan: Foto buram');
         $this->actingAs($pengguna)->get('/pindai')
             ->assertOk()->assertSee(url('/aktivitas/'.$aktivitas->id_aktivitas), false)->assertSee('Ditolak');
+    }
+
+    // ------------------------------------------------- sambungan antar modul
+
+    public function test_sidebar_menyambung_ke_beranda_panduan_jadwal_profil_dan_keluar(): void
+    {
+        $this->actingAs(Pengguna::factory()->create())->get('/pindai')->assertOk()
+            ->assertSee('href="'.route('home').'"', false)
+            ->assertSee('href="'.route('panduan.index').'"', false)
+            ->assertSee('href="'.route('schedules.public').'"', false)
+            ->assertSee('href="'.route('profil.show').'"', false)
+            ->assertSee('action="'.route('logout').'"', false)
+            ->assertDontSee(route('admin.lokasi.index'), false);
+    }
+
+    public function test_sidebar_admin_menyambung_ke_kelola_jadwal_lokasi_dan_kategori(): void
+    {
+        $this->actingAs(Pengguna::factory()->admin()->create())->get('/pindai')->assertOk()
+            ->assertSee('href="'.route('admin.schedules.index').'"', false)
+            ->assertSee('href="'.route('admin.lokasi.index').'"', false)
+            ->assertSee('href="'.route('kategori.index').'"', false);
+    }
+
+    public function test_halaman_publik_memuat_navigasi_bersama_dengan_tautan_masuk(): void
+    {
+        foreach ([route('home'), route('panduan.index'), route('schedules.public')] as $url) {
+            $this->get($url)->assertOk()
+                ->assertSee('pk-nav-global', false)
+                ->assertSee('href="'.route('login').'"', false)
+                ->assertSee('href="'.route('panduan.index').'"', false)
+                ->assertSee('href="'.route('schedules.public').'"', false)
+                ->assertDontSee(route('pindai.index'), false);
+        }
+    }
+
+    public function test_halaman_admin_teman_memuat_navigasi_bersama_untuk_kembali(): void
+    {
+        $admin = Pengguna::factory()->admin()->create();
+
+        foreach ([route('admin.schedules.index'), route('admin.lokasi.index'), route('kategori.index')] as $url) {
+            $this->actingAs($admin)->get($url)->assertOk()
+                ->assertSee('pk-nav-global', false)
+                ->assertSee('href="'.route('admin.verifikasi.index').'"', false)
+                ->assertSee('href="'.route('pindai.index').'"', false)
+                ->assertSee('action="'.route('logout').'"', false);
+        }
     }
 
     // ------------------------------------------------- halaman jadwal (admin)

@@ -11,30 +11,30 @@
     $persen = $info['skor'] !== null ? (int) round($info['skor'] * 100) : null;
     $warnaBar = $ragu ? 'bg-[#F59E0B]' : ($v1 && $v1->hasil === 'Valid' ? 'bg-[#16A34A]' : 'bg-[#DC2626]');
 @endphp
-<section id="panel-status-verifikasi" class="rounded-2xl border border-[#E1EAE4] bg-white p-6">
+<section id="panel-status-verifikasi" class="rounded-xl border border-[#E4EBE7] bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)] p-6">
     <h2 class="text-base font-semibold">Status Verifikasi</h2>
 
     <dl class="mt-4 space-y-3 text-sm">
         @if ($info['selesai'])
             <div class="flex justify-between gap-4">
-                <dt class="text-[#5B6B62]">Sumber verifikasi</dt>
+                <dt class="text-[#6B7A72]">Sumber verifikasi</dt>
                 <dd class="text-right font-semibold">{{ $info['sumber'] }}@if ($info['nama_admin']) · {{ $info['nama_admin'] }}@endif</dd>
             </div>
         @else
             <div class="flex justify-between gap-4">
-                <dt class="text-[#5B6B62]">Keterangan</dt>
+                <dt class="text-[#6B7A72]">Keterangan</dt>
                 <dd class="text-right font-semibold text-[#92400E]">{{ $info['info'] }}</dd>
             </div>
         @endif
         @if ($info['label'] !== null)
             <div class="flex justify-between gap-4">
-                <dt class="text-[#5B6B62]">Label terdeteksi</dt>
+                <dt class="text-[#6B7A72]">Label terdeteksi</dt>
                 <dd class="text-right font-semibold">{{ $info['label'] }}</dd>
             </div>
         @endif
         @if ($persen !== null)
             <div class="flex items-center justify-between gap-4">
-                <dt class="text-[#5B6B62]">Keyakinan</dt>
+                <dt class="text-[#6B7A72]">Keyakinan</dt>
                 <dd class="flex items-center gap-2 font-semibold">
                     <span class="h-1.5 w-20 overflow-hidden rounded-full bg-[#E1EAE4]"><span class="block h-full rounded-full {{ $warnaBar }}" style="width: {{ $persen }}%"></span></span>
                     {{ $persen }}%
@@ -42,14 +42,14 @@
             </div>
         @endif
         <div class="flex justify-between gap-4">
-            <dt class="text-[#5B6B62]">Poin</dt>
+            <dt class="text-[#6B7A72]">Poin</dt>
             <dd class="text-right font-semibold {{ $status === 'Terverifikasi' ? 'text-[#15803D]' : '' }}">
                 {{ $info['poin'] === null ? '–' : ($status === 'Terverifikasi' ? '+' . $info['poin'] : $info['poin']) }}
             </dd>
         </div>
         @if ($info['waktu'])
             <div class="flex justify-between gap-4">
-                <dt class="text-[#5B6B62]">Waktu verifikasi</dt>
+                <dt class="text-[#6B7A72]">Waktu verifikasi</dt>
                 <dd class="text-right font-semibold">{{ $info['waktu']->locale('id')->translatedFormat('d M Y, H:i') }}</dd>
             </div>
         @endif
@@ -62,10 +62,10 @@
     </dl>
 
     @unless ($info['selesai'])
-        <p class="mt-3 text-xs text-[#5B6B62]">Status diperiksa otomatis setiap 10 detik.</p>
+        <p class="mt-3 text-xs text-[#6B7A72]">Status diperiksa otomatis setiap 10 detik.</p>
     @endunless
 
-    <h3 class="mt-6 border-t border-[#E9F0EC] pt-5 text-xs font-semibold uppercase tracking-wide text-[#5B6B62]">Riwayat proses</h3>
+    <h3 class="mt-6 border-t border-[#E9F0EC] pt-5 text-xs font-semibold uppercase tracking-wide text-[#6B7A72]">Riwayat proses</h3>
     @php
         $langkah = [
             ['QR dipindai', $aktivitas->sesi?->waktu_scan?->format('d M Y, H:i') ?? 'Sesi pembuangan dimulai', 'selesai'],
@@ -101,7 +101,7 @@
                 </span>
                 <div class="pt-0.5">
                     <p class="text-sm font-semibold {{ $keadaan === 'nanti' ? 'text-[#9AAFA2]' : '' }}">{{ $judulLangkah }}</p>
-                    <p class="text-xs text-[#5B6B62]">{{ $ketLangkah }}</p>
+                    <p class="text-xs text-[#6B7A72]">{{ $ketLangkah }}</p>
                 </div>
             </li>
         @endforeach
