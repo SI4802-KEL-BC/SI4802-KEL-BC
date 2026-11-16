@@ -283,4 +283,20 @@ class NavigasiAntarHalamanTest extends TestCase
         $this->actingAs($pengguna)->get('/pindai')
             ->assertOk()->assertSee(url('/aktivitas/'.$aktivitas->id_aktivitas), false)->assertSee('Ditolak');
     }
+
+    // ------------------------------------------------- halaman jadwal (admin)
+
+    public function test_admin_pengguna_bisa_membuka_halaman_kelola_jadwal(): void
+    {
+        $this->actingAs(Pengguna::factory()->admin()->create())
+            ->get(route('admin.schedules.index'))
+            ->assertOk();
+    }
+
+    public function test_pengguna_biasa_ditolak_di_halaman_kelola_jadwal(): void
+    {
+        $this->actingAs(Pengguna::factory()->create())
+            ->get(route('admin.schedules.index'))
+            ->assertForbidden();
+    }
 }
