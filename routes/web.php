@@ -77,3 +77,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile/edit', [PenggunaController::class, 'edit'])->name('profil.edit');
     Route::put('/profile', [PenggunaController::class, 'update'])->name('profil.update');
 });
+
+// STUB PBI-13 - hapus saat PBI-01 masuk: route bantu khusus lokal (login pintas & simulator tong).
+// routes/dev.php tidak di-commit, jadi hanya dimuat bila filenya ada dan APP_ENV=local.
+if (app()->environment('local') && is_file(__DIR__.'/dev.php')) {
+    require __DIR__.'/dev.php';
+}
