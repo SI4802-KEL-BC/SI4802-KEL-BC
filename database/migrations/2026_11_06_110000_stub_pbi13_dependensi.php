@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /*
@@ -10,11 +11,23 @@ use Illuminate\Support\Facades\Schema;
  * agar aman bila migration milik teman sudah ada. Hapus tabel yang duplikat
  * saat migration aslinya masuk ke main (lihat "Catatan Stub Dependensi"
  * di docs/PBI-13.md). kategori_sampah TIDAK di-stub (sudah ada, SCRUM-27).
+ *
+ * Tabel yang benar-benar dibuat di up() dicatat di tabel kecil
+ * `stub_pbi13_tabel`, supaya down() hanya men-drop tabel buatan migration ini
+ * dan tidak menyentuh tabel yang sudah ada sebelumnya (milik teman).
  */
 return new class extends Migration
 {
+    /** Tabel pencatat tabel yang dibuat oleh migration stub ini. */
+    private const PENCATAT = 'stub_pbi13_tabel';
+
+    /** Urutan drop yang aman terhadap foreign key (anak dulu, induk terakhir). */
+    private const URUTAN_DROP = ['transaksi_poin', 'aturan_reward', 'kategori_lokasi', 'lokasi_tempat_sampah', 'pengguna'];
+
     public function up(): void
     {
+        $dibuat = [];
+
         if (! Schema::hasTable('pengguna')) {
             Schema::create('pengguna', function (Blueprint $table) {
                 $table->id('id_pengguna');
@@ -25,6 +38,7 @@ return new class extends Migration
                 $table->string('status_akun', 15)->default('aktif');
                 $table->timestamps();
             });
+            $dibuat[] = 'pengguna';
         }
 
         if (! Schema::hasTable('lokasi_tempat_sampah')) {
@@ -37,6 +51,7 @@ return new class extends Migration
                 $table->string('status', 15)->default('aktif'); // aktif / nonaktif
                 $table->timestamps();
             });
+            $dibuat[] = 'lokasi_tempat_sampah';
         }
 
         if (! Schema::hasTable('kategori_lokasi')) {
@@ -47,6 +62,7 @@ return new class extends Migration
                 $table->foreign('id_kategori')->references('id_kategori')->on('kategori_sampah')->cascadeOnDelete();
                 $table->foreign('id_lokasi')->references('id_lokasi')->on('lokasi_tempat_sampah')->cascadeOnDelete();
             });
+            $dibuat[] = 'kategori_lokasi';
         }
 
         if (! Schema::hasTable('aturan_reward')) {
@@ -59,6 +75,7 @@ return new class extends Migration
                 $table->timestamps();
                 $table->foreign('id_kategori')->references('id_kategori')->on('kategori_sampah');
             });
+            $dibuat[] = 'aturan_reward';
         }
 
         // id_aktivitas: FK ke aktivitas_pemilahan ditambahkan di migration aktivitas_pemilahan.
@@ -74,15 +91,31 @@ return new class extends Migration
                 $table->timestamps();
                 $table->foreign('id_pengguna')->references('id_pengguna')->on('pengguna');
             });
+            $dibuat[] = 'transaksi_poin';
         }
+
+        Schema::create(self::PENCATAT, function (Blueprint $table) {
+            $table->string('nama_tabel', 64)->primary();
+        });
+        DB::table(self::PENCATAT)->insert(array_map(fn ($t) => ['nama_tabel' => $t], $dibuat));
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('transaksi_poin');
-        Schema::dropIfExists('aturan_reward');
-        Schema::dropIfExists('kategori_lokasi');
-        Schema::dropIfExists('lokasi_tempat_sampah');
-        Schema::dropIfExists('pengguna');
+        // Tanpa catatan (mis. dijalankan sebelum pencatat ada) -> jangan drop apa pun,
+        // karena tidak bisa dipastikan tabel mana yang dibuat migration ini.
+        if (! Schema::hasTable(self::PENCATAT)) {
+            return;
+        }
+
+        $dibuat = DB::table(self::PENCATAT)->pluck('nama_tabel')->all();
+
+        foreach (self::URUTAN_DROP as $tabel) {
+            if (in_array($tabel, $dibuat, true)) {
+                Schema::dropIfExists($tabel);
+            }
+        }
+
+        Schema::dropIfExists(self::PENCATAT);
     }
 };
