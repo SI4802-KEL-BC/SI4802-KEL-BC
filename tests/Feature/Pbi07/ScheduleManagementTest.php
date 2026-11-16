@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Pbi07;
 
 use App\Models\Category;
 use App\Models\Location;

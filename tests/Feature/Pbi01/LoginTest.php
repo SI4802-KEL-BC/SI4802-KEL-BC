@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Pbi01;
 
 use App\Models\Pengguna;
 use Illuminate\Foundation\Testing\RefreshDatabase;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Pbi05;
 
 use App\Models\KategoriSampah;
 use App\Models\PanduanPemilahan;
