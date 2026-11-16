@@ -1,10 +1,22 @@
 <?php
 
+use App\Http\Controllers\Admin\LokasiController;
 use App\Http\Controllers\Admin\QrTongController;
+use App\Http\Controllers\Admin\SchedulePageController;
 use App\Http\Controllers\Admin\VerifikasiController;
 use App\Http\Controllers\AktivitasController;
 use App\Http\Controllers\KategoriController;
+use App\Http\Controllers\PanduanPemilahanController;
+use App\Http\Controllers\PenggunaController;
 use App\Http\Controllers\PindaiController;
+use App\Http\Controllers\PublicScheduleController;
+use Illuminate\Support\Facades\Route;
+
+Route::view('/', 'home')->name('home');
+
+Route::get('/panduan', [PanduanPemilahanController::class, 'index'])->name('panduan.index');
+Route::get('/panduan/kategori/{id}', [PanduanPemilahanController::class, 'showKategori'])->name('panduan.kategori');
+Route::get('/panduan/{slug}', [PanduanPemilahanController::class, 'show'])->name('panduan.show');
 
 // STUB PBI-13 - diganti saat PBI-01 masuk: halaman login tampilan saja (tanpa POST), agar redirect "auth" berfungsi.
 Route::get('/login', fn () => view('auth.login'))->name('login');
@@ -15,10 +27,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/pindai', [PindaiController::class, 'index'])->name('pindai.index');
     Route::post('/pindai', [PindaiController::class, 'simpan'])->name('pindai.simpan');
     Route::get('/pindai/{kode}', [PindaiController::class, 'mulai'])->where('kode', '[A-Za-z0-9_-]+')->name('pindai.mulai');
-        // PBI-14: riwayat aktivitas milik sendiri.
+    // PBI-14: riwayat aktivitas milik sendiri.
     Route::get('/aktivitas', [AktivitasController::class, 'index'])->name('aktivitas.index');
     Route::get('/aktivitas/{aktivitas}', [AktivitasController::class, 'show'])->name('aktivitas.show');
-        // PBI-15: status terbaru (JSON) untuk pembaruan otomatis di halaman detail.
+    // PBI-15: status terbaru (JSON) untuk pembaruan otomatis di halaman detail.
     Route::get('/aktivitas/{aktivitas}/status', [AktivitasController::class, 'status'])->name('aktivitas.status');
     Route::patch('/aktivitas/{aktivitas}/catatan', [AktivitasController::class, 'ubahCatatan'])->name('aktivitas.catatan');
     Route::delete('/aktivitas/{aktivitas}', [AktivitasController::class, 'destroy'])->name('aktivitas.destroy');
@@ -34,7 +46,34 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin/verifikasi')->name('adm
     Route::post('/{aktivitas}', [VerifikasiController::class, 'proses'])->name('proses');
 });
 
+Route::middleware(['auth', 'role:admin'])->prefix('admin/lokasi')->name('admin.lokasi.')->group(function () {
+    Route::get('/', [LokasiController::class, 'index'])->name('index');
+    Route::post('/', [LokasiController::class, 'store'])->name('store');
+    Route::put('/{lokasi}', [LokasiController::class, 'update'])->name('update');
+    Route::post('/{lokasi}/toggle', [LokasiController::class, 'toggle'])->name('toggle');
+});
+
 Route::get('/kategori', [KategoriController::class, 'index'])->name('kategori.index');
 Route::post('/kategori', [KategoriController::class, 'store'])->name('kategori.store');
 Route::put('/kategori/{kategori}', [KategoriController::class, 'update'])->name('kategori.update');
 Route::post('/kategori/{kategori}/toggle', [KategoriController::class, 'toggle'])->name('kategori.toggle');
+
+Route::get('/jadwal-pengangkutan', [PublicScheduleController::class, 'index'])
+    ->name('schedules.public');
+
+Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/jadwal-pengangkutan', [SchedulePageController::class, 'index'])
+        ->name('schedules.index');
+    Route::post('/jadwal-pengangkutan', [SchedulePageController::class, 'store'])
+        ->name('schedules.store');
+    Route::put('/jadwal-pengangkutan/{schedule}', [SchedulePageController::class, 'update'])
+        ->name('schedules.update');
+    Route::patch('/jadwal-pengangkutan/{schedule}/status', [SchedulePageController::class, 'updateStatus'])
+        ->name('schedules.status');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [PenggunaController::class, 'show'])->name('profil.show');
+    Route::get('/profile/edit', [PenggunaController::class, 'edit'])->name('profil.edit');
+    Route::put('/profile', [PenggunaController::class, 'update'])->name('profil.update');
+});
