@@ -77,3 +77,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile/edit', [PenggunaController::class, 'edit'])->name('profil.edit');
     Route::put('/profile', [PenggunaController::class, 'update'])->name('profil.update');
 });
+
+
+// PBI-10 (Fathur): route mandiri lokasi tempat sampah buat tes
+require __DIR__.'/titik.php';
