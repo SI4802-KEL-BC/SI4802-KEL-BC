@@ -1,12 +1,12 @@
 <?php
 
-namespace Tests\Feature\Pbi14;
+namespace Tests\Feature\PBI14;
 
 use App\Models\AktivitasPemilahan;
 use App\Models\Pengguna;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
-use Tests\Feature\Pbi14\Concerns\BuatAktivitas;
+use Tests\Feature\PBI14\Concerns\BuatAktivitas;
 use Tests\TestCase;
 
 /** PBI-14 · TC-14-01, 02, 05, 06, 09, 10 (+ ringkasan, eager loading, menu). */

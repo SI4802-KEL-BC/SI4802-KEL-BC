@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Pbi13;
+namespace Tests\Feature\PBI13;
 
 use App\Models\AktivitasPemilahan;
 use App\Models\AturanReward;
@@ -13,7 +13,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Testing\TestResponse;
-use Tests\Feature\Pbi13\Concerns\SiapkanPerangkat;
+use Tests\Feature\PBI13\Concerns\SiapkanPerangkat;
 use Tests\TestCase;
 
 /** TC-13-03, 04, 05, 11, 13 (+ aturan antrean verifikasi manual Admin). */

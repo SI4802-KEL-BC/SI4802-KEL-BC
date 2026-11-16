@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Pbi13;
+namespace Tests\Feature\PBI13;
 
 use App\Models\AktivitasPemilahan;
 use App\Models\Pengguna;

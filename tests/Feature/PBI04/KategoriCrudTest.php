@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Pbi04;
+namespace Tests\Feature\PBI04;
 
 use App\Models\KategoriSampah;
 use App\Models\Pengguna;

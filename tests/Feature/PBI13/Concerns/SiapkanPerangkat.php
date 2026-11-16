@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Pbi13\Concerns;
+namespace Tests\Feature\PBI13\Concerns;
 
 use App\Models\KategoriSampah;
 use App\Models\LokasiTempatSampah;
