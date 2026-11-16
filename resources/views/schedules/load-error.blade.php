@@ -14,6 +14,7 @@
     </style>
 </head>
 <body>
+@include('partials.nav-global')
     <main class="card">
         <div class="icon" aria-hidden="true">!</div>
         <h1>Jadwal belum dapat dimuat</h1>

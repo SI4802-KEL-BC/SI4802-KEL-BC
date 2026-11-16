@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="min-h-screen bg-[#f7faf7] text-slate-800">
+@include('partials.nav-global')
     <header class="border-b border-emerald-100 bg-white">
         <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4" aria-label="Navigasi utama">
             <a href="{{ route('home') }}" class="text-xl font-extrabold tracking-tight text-emerald-700">PilahKu</a>

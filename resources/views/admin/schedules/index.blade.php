@@ -54,6 +54,7 @@
     </style>
 </head>
 <body>
+@include('partials.nav-global')
 <div class="shell">
     <aside class="sidebar">
         <div class="brand"><span class="brand-mark">P</span> PilahKu</div>

@@ -1,4 +1,4 @@
-{{-- STUB PBI-13 - diganti saat PBI-01 masuk. Tampilan saja: form TIDAK memproses login. --}}
+{{-- Halaman masuk: form dikirim ke AuthController@masuk (tabel pengguna). --}}
 @extends('layouts.app')
 
 @section('judul', 'Masuk · PilahKu')
@@ -43,11 +43,18 @@
             <h1 class="mt-6 text-2xl font-bold tracking-tight md:mt-0">Masuk ke akunmu</h1>
             <p class="mt-1.5 text-sm text-pk-teks-2">Gunakan email kampus untuk melanjutkan.</p>
 
-            {{-- Sengaja tanpa route POST: tidak ada pemrosesan login (PBI-01 milik Dea). --}}
-            <form id="form-login" method="post" action="#" novalidate class="mt-8 space-y-5">
+            @if (session('status'))
+                <p role="status" class="mt-6 rounded-xl bg-pk-kuning-bg px-3.5 py-2.5 text-sm font-medium text-pk-kuning">{{ session('status') }}</p>
+            @endif
+
+            <form id="form-login" method="post" action="{{ route('login.masuk') }}" novalidate class="mt-8 space-y-5">
+                @csrf
                 <div class="space-y-1.5">
                     <label for="email" class="pk-label">Email Kampus</label>
-                    <input id="email" name="email" type="email" autocomplete="username" placeholder="nama@student.kampus.ac.id" class="pk-input h-11">
+                    <input id="email" name="email" type="email" value="{{ old('email') }}" autocomplete="username" autofocus placeholder="nama@student.kampus.ac.id" class="pk-input h-11">
+                    @error('email')
+                        <p role="alert" class="text-sm font-medium text-pk-merah">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div class="space-y-1.5">
@@ -58,11 +65,9 @@
                     <input id="kata_sandi" name="kata_sandi" type="password" autocomplete="current-password" placeholder="••••••••" class="pk-input h-11">
                 </div>
 
-                <p id="pesan-login" role="status" hidden
-                   class="flex items-center gap-2 rounded-xl bg-pk-kuning-bg px-3.5 py-2.5 text-sm font-medium text-pk-kuning">
-                    <svg class="size-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM9 9a.75.75 0 0 0 0 1.5h.253a.25.25 0 0 1 .244.304l-.459 2.066A1.75 1.75 0 0 0 10.747 15H11a.75.75 0 0 0 0-1.5h-.253a.25.25 0 0 1-.244-.304l.459-2.066A1.75 1.75 0 0 0 9.253 9H9Z" clip-rule="evenodd"/></svg>
-                    Login belum tersedia (PBI-01)
-                </p>
+                @error('kata_sandi')
+                    <p role="alert" class="text-sm font-medium text-pk-merah">{{ $message }}</p>
+                @enderror
 
                 <button type="submit" class="pk-tombol-primer w-full">Masuk</button>
             </form>
@@ -83,11 +88,4 @@
             @endif
         </div>
     </div>
-
-    <script>
-        document.getElementById('form-login').addEventListener('submit', function (e) {
-            e.preventDefault(); // tidak ada pengiriman data apa pun
-            document.getElementById('pesan-login').hidden = false;
-        });
-    </script>
 @endsection

@@ -8,6 +8,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body class="min-h-screen bg-[#f4f8f5] text-slate-800">
+@include('partials.nav-global')
 <div class="min-h-screen lg:flex">
     <aside class="bg-[#0e422e] text-white lg:fixed lg:inset-y-0 lg:flex lg:w-56 lg:flex-col">
         <a href="{{ route('home') }}" class="block border-b border-white/10 px-6 py-5 text-xl font-extrabold tracking-tight">PilahKu</a>
