@@ -76,16 +76,6 @@
                 Belum punya akun? <a href="#" class="font-semibold text-pk-hijau-teks hover:underline">Daftar</a>
             </p>
 
-            {{-- Jalan pintas lokal: hanya tampil bila routes/dev.php termuat (APP_ENV=local). --}}
-            @if (app()->environment('local') && Route::has('dev-login'))
-                <div class="mt-8 rounded-xl border border-dashed border-pk-garis bg-pk-latar p-4">
-                    <p class="text-center text-xs font-semibold uppercase tracking-wider text-pk-teks-2">Khusus lokal</p>
-                    <div class="mt-3 grid grid-cols-2 gap-2">
-                        <a href="{{ route('dev-login', 'user@pilahku.test') }}" class="pk-tombol-sekunder h-9 px-3 text-xs">Masuk sebagai User (dev)</a>
-                        <a href="{{ route('dev-login', 'admin@pilahku.test') }}" class="pk-tombol-sekunder h-9 px-3 text-xs">Masuk sebagai Admin (dev)</a>
-                    </div>
-                </div>
-            @endif
         </div>
     </div>
 @endsection
