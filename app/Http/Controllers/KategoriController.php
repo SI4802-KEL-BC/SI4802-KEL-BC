@@ -43,13 +43,19 @@ class KategoriController extends Controller
 
     private function rules(Request $request, ?KategoriSampah $k = null): array
     {
+        // TC-KAT-03 & TC-KAT-06: nama dan kode wajib diisi dan tidak boleh duplikat.
         return $request->validate([
-            'nama_kategori' => ['required', 'string', 'max:50'],
+            'nama_kategori' => ['required', 'string', 'max:50', Rule::unique('kategori_sampah', 'nama_kategori')->ignore($k?->id_kategori, 'id_kategori')],
             'kode' => ['required', 'string', 'max:10', Rule::unique('kategori_sampah', 'kode')->ignore($k?->id_kategori, 'id_kategori')],
             'warna_label' => ['nullable', 'string', 'max:20'],
             'deskripsi' => ['nullable', 'string'],
             'karakteristik' => ['nullable', 'string'],
             'cara_penanganan' => ['nullable', 'string'],
+        ], [
+            'nama_kategori.required' => 'Nama kategori wajib diisi',
+            'nama_kategori.unique' => 'Nama kategori sudah digunakan',
+            'kode.required' => 'Kode kategori wajib diisi',
+            'kode.unique' => 'Kode kategori sudah digunakan',
         ]);
     }
 }

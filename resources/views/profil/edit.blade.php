@@ -21,6 +21,17 @@
     </div>
 
     <div class="grid grid-cols-1 gap-6 items-start">
+        @if ($errors->any())
+            <div role="alert" class="lg:col-span-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <p class="font-semibold">Perubahan belum disimpan. Periksa kembali data berikut:</p>
+                <ul class="mt-1 list-disc pl-5">
+                    @foreach ($errors->all() as $pesan)
+                        <li>{{ $pesan }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <!-- Form Data Diri (2 cols) -->
         <form
             method="POST"

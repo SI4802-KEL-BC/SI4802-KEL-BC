@@ -10,7 +10,14 @@ use Database\Seeders\TitikLokasiSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-/** PBI-10 · CRUD lokasi tempat sampah (Admin\LokasiController, view titik/admin). */
+/**
+ * SCRUM-33 · PBI-10 CRUD Lokasi Tempat Sampah (Admin\LokasiController, view titik/admin)
+ *
+ * Use Case  : Mengelola Lokasi Tempat Sampah (UC-10)
+ * Aktor     : Admin
+ * Awal      : Admin sudah login dan membuka menu lokasi tempat sampah
+ * Akhir     : Data lokasi tersimpan dan diperbarui
+ */
 class LokasiCrudTest extends TestCase
 {
     use RefreshDatabase;
@@ -60,7 +67,36 @@ class LokasiCrudTest extends TestCase
         ];
     }
 
-    public function test_kelola_lokasi_hanya_untuk_admin(): void
+    /**
+     * TC-10-12 · Titik Nonaktif tidak tampil / tidak bisa dipakai pengguna.
+     * Peta pengguna (PBI-11) belum dibuat, jadi yang diuji adalah halaman pengguna yang sudah ada:
+     * pilihan lokasi di jadwal publik (PBI-08) dan pindai QR tong (PBI-13).
+     */
+    public function test_tc_10_12_titik_nonaktif_tidak_tampil_untuk_pengguna(): void
+    {
+        $titik = $this->titik(['nama_lokasi' => 'Pendopo Nonaktif', 'kode_titik' => 'D1', 'kode_perangkat' => 'PRK-D1']);
+
+        $this->post(route('admin.lokasi.toggle', $titik));
+        $this->assertSame('nonaktif', $titik->fresh()->status);
+
+        $pengguna = Pengguna::factory()->create();
+
+        $this->actingAs($pengguna)->get(route('schedules.public'))
+            ->assertOk()
+            ->assertViewHas('locations', fn ($lokasi) => ! $lokasi->contains('id_lokasi', $titik->id_lokasi))
+            ->assertDontSee('Pendopo Nonaktif');
+
+        $this->actingAs($pengguna)->get('/pindai/PRK-D1')
+            ->assertRedirect(route('pindai.index'))
+            ->assertSessionHasErrors(['kode_perangkat' => 'Tong sampah ini sedang tidak aktif.']);
+
+        // Di peta admin titik tetap ada, ditandai tidak aktif (abu-abu).
+        $this->actingAs(Pengguna::factory()->admin()->create())->get(route('admin.lokasi.index'))
+            ->assertViewHas('titikPeta', fn ($peta) => $peta->firstWhere('kode', 'D1')['aktif'] === false);
+    }
+
+    /** TC-10-13 · Tanpa login → redirect login; user biasa → 403. */
+    public function test_tc_10_13_akses_tanpa_login_atau_user_biasa(): void
     {
         auth()->logout();
         $this->get(route('admin.lokasi.index'))->assertRedirect(route('login'));
@@ -252,5 +288,45 @@ class LokasiCrudTest extends TestCase
 
         $this->post(route('admin.lokasi.store'), $this->dataValid(['latitude' => '200']))
             ->assertSessionHasErrors(['latitude' => 'Format koordinat tidak valid.']);
+    }
+
+    // ------------------------------------------------------------------ Use Case
+
+    /** Skenario Normal: buka menu → pilih tambah/ubah → isi data → Simpan → daftar diperbarui. */
+    public function test_use_case_skenario_normal(): void
+    {
+        // Membuka menu lokasi → daftar lokasi tampil.
+        $this->get(route('admin.lokasi.index'))->assertOk()->assertSee('Kelola Lokasi Tempat Sampah');
+
+        // Memilih tambah lokasi → formulir tampil.
+        $this->get(route('admin.lokasi.index', ['tambah' => 1]))->assertOk()->assertSee(route('admin.lokasi.store'));
+
+        // Mengisi nama, koordinat, kategori lalu Simpan → data tersimpan dan daftar diperbarui.
+        $this->post(route('admin.lokasi.store'), $this->dataValid([
+            'nama_lokasi' => 'Kantin TULT - A2',
+            'kode_titik' => 'A2',
+            'kategori' => [$this->kategori()->id_kategori, $this->kategori('Kertas', 'KRT')->id_kategori],
+        ]))->assertRedirect(route('admin.lokasi.index'))->assertSessionHas('status', 'Lokasi berhasil ditambahkan.');
+
+        $titik = LokasiTempatSampah::where('kode_titik', 'A2')->firstOrFail();
+        $this->assertSame(2, $titik->kategori()->count());
+        $this->get(route('admin.lokasi.index'))->assertSee('Kantin TULT - A2');
+
+        // Memilih ubah lokasi → perubahan tersimpan, id tetap.
+        $this->get(route('admin.lokasi.index', ['edit' => $titik->id_lokasi]))->assertSee(route('admin.lokasi.update', $titik));
+        $this->put(route('admin.lokasi.update', $titik), $this->dataValid(['nama_lokasi' => 'Kantin TULT Barat - A2', 'kode_titik' => 'A2']))
+            ->assertSessionHas('status', 'Lokasi berhasil diperbarui.');
+        $this->assertSame('Kantin TULT Barat - A2', LokasiTempatSampah::find($titik->id_lokasi)->nama_lokasi);
+    }
+
+    /** Skenario Gagal: koordinat di luar kawasan Telkom University → ditolak dengan pesan. */
+    public function test_use_case_skenario_gagal(): void
+    {
+        $this->from(route('admin.lokasi.index', ['tambah' => 1]))->followingRedirects()
+            ->post(route('admin.lokasi.store'), $this->dataValid(['latitude' => '-7.000000', 'longitude' => '107.700000']))
+            ->assertOk()
+            ->assertSee('Koordinat berada di luar kawasan Telkom University.');
+
+        $this->assertDatabaseCount('lokasi_tempat_sampah', 0);
     }
 }

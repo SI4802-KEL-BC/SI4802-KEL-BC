@@ -37,7 +37,7 @@
             <section class="mb-6 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800" role="alert">
                 <h2 class="font-bold">Data kategori belum dapat dimuat</h2>
                 <p class="mt-1">Ada kendala koneksi ke database. Periksa koneksi lalu coba muat ulang halaman.</p>
-                <a href="{{ route('panduan.index') }}" class="mt-2 inline-block font-bold underline">Coba lagi</a>
+                <a href="{{ route('panduan.index') }}" class="mt-2 inline-block font-bold underline">Muat Ulang</a>
             </section>
         @elseif (!empty($panduanTableError) && $panduanTableError)
             <p class="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900" role="status">
@@ -70,8 +70,9 @@
                 <div class="rounded-2xl border border-slate-200 bg-white p-8 text-center text-slate-600">Kategori belum dapat ditampilkan.</div>
             @elseif ($kategoris->isEmpty())
                 <div class="rounded-2xl border border-slate-200 bg-white p-8 text-center" role="status">
-                    <h3 class="font-bold text-slate-900">Belum ada kategori sampah aktif</h3>
-                    <p class="mt-1 text-sm text-slate-500">Kategori akan tampil di sini setelah tersedia.</p>
+                    <h3 class="font-bold text-slate-900">Panduan belum tersedia</h3>
+                    <p class="mt-1 text-sm text-slate-500">Belum ada kategori sampah aktif. Kategori akan tampil di sini setelah tersedia.</p>
+                    <a href="{{ route('panduan.index') }}" class="mt-3 inline-block text-sm font-bold text-emerald-700 underline">Muat Ulang</a>
                 </div>
             @else
                 <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3" id="kategoriCards">

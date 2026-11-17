@@ -39,6 +39,19 @@ class StoreScheduleRequest extends FormRequest
     public function messages(): array
     {
         return [
+            // TC-JDW-03: field wajib kosong.
+            'id_kategori.required' => 'Kategori wajib diisi.',
+            'id_lokasi.required' => 'Lokasi wajib diisi. Pilih setidaknya satu lokasi atau pilih Semua area.',
+            'pola.required' => 'Pola jadwal wajib diisi.',
+            'berlaku_mulai.required' => 'Tanggal mulai berlaku wajib diisi.',
+            'jam_buang_mulai.required' => 'Jam mulai buang wajib diisi.',
+            'jam_buang_selesai.required' => 'Jam selesai buang wajib diisi.',
+            'jam_angkut.required' => 'Jam angkut wajib diisi.',
+            // TC-JDW-04: hari atau jam tidak valid.
+            'hari.in' => 'Hari tidak valid.',
+            'jam_buang_mulai.date_format' => 'Jam tidak valid. Gunakan format JJ:MM (00:00–23:59).',
+            'jam_buang_selesai.date_format' => 'Jam tidak valid. Gunakan format JJ:MM (00:00–23:59).',
+            'jam_angkut.date_format' => 'Jam tidak valid. Gunakan format JJ:MM (00:00–23:59).',
             'id_kategori.exists' => 'Kategori tidak tersedia atau sudah nonaktif.',
             'id_lokasi.*.exists' => 'Lokasi tidak tersedia atau sudah nonaktif.',
             'id_lokasi.required_unless' => 'Pilih setidaknya satu lokasi atau pilih Semua area.',

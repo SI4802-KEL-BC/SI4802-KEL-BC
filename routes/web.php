@@ -23,6 +23,9 @@ Route::get('/panduan/{slug}', [PanduanPemilahanController::class, 'show'])->name
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'form'])->name('login');
     Route::post('/login', [AuthController::class, 'masuk'])->middleware('throttle:10,1')->name('login.masuk');
+    // PBI-01: registrasi akun pengguna.
+    Route::get('/register', [AuthController::class, 'formDaftar'])->name('register');
+    Route::post('/register', [AuthController::class, 'daftar'])->name('register.simpan');
 });
 Route::post('/logout', [AuthController::class, 'keluar'])->middleware('auth')->name('logout');
 
@@ -84,6 +87,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [PenggunaController::class, 'show'])->name('profil.show');
     Route::get('/profile/edit', [PenggunaController::class, 'edit'])->name('profil.edit');
     Route::put('/profile', [PenggunaController::class, 'update'])->name('profil.update');
+    Route::put('/profile/password', [PenggunaController::class, 'ubahKataSandi'])->name('profil.password');
+    Route::post('/profile/deactivate', [PenggunaController::class, 'nonaktifkan'])->name('profil.deactivate');
 });
 
 // STUB PBI-13 - hapus saat PBI-01 masuk: route bantu khusus lokal (login pintas & simulator tong).
