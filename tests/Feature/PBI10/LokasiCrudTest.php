@@ -60,6 +60,40 @@ class LokasiCrudTest extends TestCase
         ];
     }
 
+    public function test_kelola_lokasi_hanya_untuk_admin(): void
+    {
+        auth()->logout();
+        $this->get(route('admin.lokasi.index'))->assertRedirect(route('login'));
+        $this->post(route('admin.lokasi.store'))->assertRedirect(route('login'));
+
+        $this->actingAs(Pengguna::factory()->create());
+        $this->get(route('admin.lokasi.index'))->assertForbidden();
+        $this->post(route('admin.lokasi.store'))->assertForbidden();
+    }
+
+    public function test_kode_perangkat_kosong_dibuat_otomatis(): void
+    {
+        $this->post(route('admin.lokasi.store'), $this->dataValid(['kode_perangkat' => '']))
+            ->assertRedirect(route('admin.lokasi.index'));
+
+        $this->assertSame(30, strlen(LokasiTempatSampah::where('kode_titik', 'N-01')->value('kode_perangkat')));
+    }
+
+    public function test_panel_tambah_dan_edit_menampilkan_form_dan_peta_mini(): void
+    {
+        $titik = $this->titik();
+
+        $this->get(route('admin.lokasi.index', ['tambah' => 1]))
+            ->assertOk()
+            ->assertSee(route('admin.lokasi.store'))
+            ->assertSee('peta-mini', false);
+
+        $this->get(route('admin.lokasi.index', ['edit' => $titik->id_lokasi]))
+            ->assertOk()
+            ->assertSee(route('admin.lokasi.update', $titik))
+            ->assertSee('peta-mini', false);
+    }
+
     // TC-10-01
     public function test_halaman_daftar_menampilkan_titik_dan_peta(): void
     {
