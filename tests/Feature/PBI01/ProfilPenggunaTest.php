@@ -40,8 +40,10 @@ class ProfilPenggunaTest extends TestCase
             ->assertSee('Pengaturan Profil')
             ->assertSee('Profile Owner')
             ->assertSee(route('profil.update'))
-            ->assertDontSee('Ubah Kata Sandi')
-            ->assertDontSee('Nonaktifkan Akun');
+            ->assertSee(route('profil.password'))
+            ->assertSee(route('profil.deactivate'))
+            ->assertSee('Ubah Kata Sandi')
+            ->assertSee('Nonaktifkan Akun');
     }
 
     public function test_profile_update_changes_only_the_signed_in_user(): void

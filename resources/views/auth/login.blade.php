@@ -73,7 +73,7 @@
             </form>
 
             <p class="mt-6 text-center text-sm text-pk-teks-2">
-                Belum punya akun? <a href="#" class="font-semibold text-pk-hijau-teks hover:underline">Daftar</a>
+                Belum punya akun? <a href="{{ route('register') }}" class="font-semibold text-pk-hijau-teks hover:underline">Daftar</a>
             </p>
 
         </div>
