@@ -21,6 +21,8 @@ class LokasiTempatSampah extends Model
         'nama_lokasi',
         'kode_titik',
         'area',
+        'keterangan',
+        'fasilitas',
         'kode_perangkat',
         'latitude',
         'longitude',
