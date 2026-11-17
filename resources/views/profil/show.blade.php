@@ -1,6 +1,7 @@
-@extends('layouts.app', ['title' => 'Profil Civitas Kampus'])
+@extends('layouts.app')
 
-@section('content')
+@section('judul', 'Profil Civitas Kampus')
+@section('isi')
 <div class="space-y-6">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -18,16 +19,16 @@
             </p>
         </div>
 
-        <a 
-            href="{{ route('profil.edit') }}" 
+        <a
+            href="{{ route('profil.edit') }}"
             class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 px-4 py-2.5 text-xs font-bold text-white shadow-xs transition"
         >
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path 
-                    stroke-linecap="round" 
-                    stroke-linejoin="round" 
-                    stroke-width="2" 
-                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" 
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
                 />
             </svg>
 
@@ -54,9 +55,9 @@
                 <div class="mx-auto flex h-24 w-24 items-center justify-center rounded-2xl bg-white text-emerald-800 text-3xl font-black shadow-md border border-white/90 overflow-hidden mb-3">
 
                     @if ($user->foto_profil)
-                        <img 
-                            src="{{ asset('storage/' . $user->foto_profil) }}" 
-                            class="h-full w-full object-cover" 
+                        <img
+                            src="{{ asset('storage/' . $user->foto_profil) }}"
+                            class="h-full w-full object-cover"
                             alt="{{ $user->nama_lengkap }}"
                         >
                     @else
@@ -238,10 +239,10 @@
 
                         <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
                             <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path 
-                                    stroke-linecap="round" 
-                                    stroke-linejoin="round" 
-                                    stroke-width="2" 
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
                                     d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 3c-2.755 0-5.292.737-7.5 2.016A11.955 11.955 0 004.5 12c0 2.755.737 5.292 2.016 7.5A11.955 11.955 0 0012 21c2.755 0 5.292-.737 7.5-2.016A11.955 11.955 0 0021 12c0-2.755-.737-5.292-2.016-7.5z"
                                 />
                             </svg>

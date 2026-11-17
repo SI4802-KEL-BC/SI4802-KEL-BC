@@ -1,6 +1,7 @@
-@extends('layouts.app', ['title' => 'Pengaturan Profil'])
+@extends('layouts.app')
 
-@section('content')
+@section('judul', 'Pengaturan Profil')
+@section('isi')
 <div class="space-y-6">
     <!-- Header -->
     <div class="flex items-center justify-between">
@@ -19,15 +20,26 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+    <div class="grid grid-cols-1 gap-6 items-start">
+        @if ($errors->any())
+            <div role="alert" class="lg:col-span-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <p class="font-semibold">Perubahan belum disimpan. Periksa kembali data berikut:</p>
+                <ul class="mt-1 list-disc pl-5">
+                    @foreach ($errors->all() as $pesan)
+                        <li>{{ $pesan }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <!-- Form Data Diri (2 cols) -->
-        <form 
-            method="POST" 
-            action="{{ route('profil.update') }}" 
-            enctype="multipart/form-data" 
-            class="lg:col-span-2 space-y-5 rounded-3xl bg-white p-6 sm:p-8 border border-slate-200/80 shadow-xs"
+        <form
+            method="POST"
+            action="{{ route('profil.update') }}"
+            enctype="multipart/form-data"
+            class="space-y-5 rounded-3xl bg-white p-6 sm:p-8 border border-slate-200/80 shadow-xs"
         >
-            @csrf 
+            @csrf
             @method('PUT')
 
             <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700 pb-3 border-b border-slate-100 flex items-center gap-2">
@@ -50,9 +62,9 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                         Foto Profil
                     </label>
-                    <input 
-                        type="file" 
-                        name="foto_profil" 
+                    <input
+                        type="file"
+                        name="foto_profil"
                         accept="image/png,image/jpeg"
                         class="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200"
                     >
@@ -66,10 +78,10 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                         Nama Lengkap <span class="text-red-500">*</span>
                     </label>
-                    <input 
-                        name="nama_lengkap" 
-                        value="{{ old('nama_lengkap', $user->nama_lengkap) }}" 
-                        required 
+                    <input
+                        name="nama_lengkap"
+                        value="{{ old('nama_lengkap', $user->nama_lengkap) }}"
+                        required
                         class="block w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-sm text-slate-800 transition focus:border-emerald-600 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/10"
                     >
                 </div>
@@ -77,9 +89,9 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                         Nama Panggilan
                     </label>
-                    <input 
-                        name="nama_panggilan" 
-                        value="{{ old('nama_panggilan', $user->nama_panggilan) }}" 
+                    <input
+                        name="nama_panggilan"
+                        value="{{ old('nama_panggilan', $user->nama_panggilan) }}"
                         placeholder="mis. Nadia"
                         class="block w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-sm text-slate-800 transition focus:border-emerald-600 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/10"
                     >
@@ -92,9 +104,9 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                         NIM / NIP <span class="text-[10px] text-slate-400 font-normal">(Terkunci Admin)</span>
                     </label>
-                    <input 
-                        value="{{ $user->nim_nip }}" 
-                        disabled 
+                    <input
+                        value="{{ $user->nim_nip }}"
+                        disabled
                         class="block w-full rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-sm text-slate-500 font-mono cursor-not-allowed"
                     >
                 </div>
@@ -102,9 +114,9 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                         Email Kampus <span class="text-[10px] text-slate-400 font-normal">(Terkunci Admin)</span>
                     </label>
-                    <input 
-                        value="{{ $user->email_kampus }}" 
-                        disabled 
+                    <input
+                        value="{{ $user->email_kampus }}"
+                        disabled
                         class="block w-full rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-sm text-slate-500 cursor-not-allowed"
                     >
                 </div>
@@ -116,9 +128,9 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                         Program Studi / Unit Kerja
                     </label>
-                    <input 
-                        name="program_studi" 
-                        value="{{ old('program_studi', $user->program_studi) }}" 
+                    <input
+                        name="program_studi"
+                        value="{{ old('program_studi', $user->program_studi) }}"
                         class="block w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-sm text-slate-800 transition focus:border-emerald-600 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/10"
                     >
                 </div>
@@ -126,9 +138,9 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                         No. Handphone (WhatsApp)
                     </label>
-                    <input 
-                        name="no_hp" 
-                        value="{{ old('no_hp', $user->no_hp) }}" 
+                    <input
+                        name="no_hp"
+                        value="{{ old('no_hp', $user->no_hp) }}"
                         placeholder="mis. 081234567890"
                         class="block w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-sm text-slate-800 transition focus:border-emerald-600 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/10"
                     >
@@ -146,15 +158,15 @@
             </div>
         </form>
 
-        <!-- Sidebar Security & Danger Zone (1 col) -->
+        @if (Route::has('profil.password') && Route::has('profil.deactivate'))
         <div class="space-y-6">
             <!-- Ubah Password Card -->
-            <form 
-                method="POST" 
-                action="{{ route('profil.password') }}" 
+            <form
+                method="POST"
+                action="{{ route('profil.password') }}"
                 class="space-y-4 rounded-3xl bg-white p-6 border border-slate-200/80 shadow-xs"
             >
-                @csrf 
+                @csrf
                 @method('PUT')
                 <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700 pb-2 border-b border-slate-100 flex items-center gap-2">
                     <svg class="h-4 w-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -165,20 +177,19 @@
 
                 <div>
                     <label class="block text-xs font-bold text-slate-600 mb-1">Kata Sandi Saat Ini</label>
-                    <input 
-                        type="password" 
-                        name="password_lama" 
-                        placeholder="••••••••" 
+                    <input
+                        type="password"
+                        name="password_lama"
+                        placeholder="••••••••"
                         class="block w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-800 transition focus:border-emerald-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                     >
                 </div>
-
                 <div>
                     <label class="block text-xs font-bold text-slate-600 mb-1">Kata Sandi Baru</label>
-                    <input 
-                        type="password" 
-                        name="kata_sandi" 
-                        placeholder="Min. 8 karakter" 
+                    <input
+                        type="password"
+                        name="kata_sandi"
+                        placeholder="Min. 8 karakter"
                         class="block w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-800 transition focus:border-emerald-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                     >
                 </div>
@@ -189,10 +200,10 @@
             </form>
 
             <!-- Deactivate Account Card -->
-            <form 
-                method="POST" 
-                action="{{ route('profil.deactivate') }}" 
-                class="space-y-3 rounded-3xl border border-rose-200 bg-rose-50/50 p-6" 
+            <form
+                method="POST"
+                action="{{ route('profil.deactivate') }}"
+                class="space-y-3 rounded-3xl border border-rose-200 bg-rose-50/50 p-6"
                 onsubmit="return confirm('Apakah Anda yakin ingin menonaktifkan akun? Anda harus menghubungi admin kampus untuk mengaktifkannya kembali.')"
             >
                 @csrf
@@ -205,15 +216,15 @@
                 <p class="text-xs text-rose-800 leading-relaxed">
                     Riwayat aktivitas pemilahan dan saldo poin Anda akan tetap tersimpan aman di database kampus.
                 </p>
-                <input 
-                    name="konfirmasi" 
-                    placeholder="Ketik: NONAKTIFKAN" 
+                <input
+                    name="konfirmasi"
+                    placeholder="Ketik: NONAKTIFKAN"
                     class="block w-full rounded-xl border border-rose-300 bg-white px-3 py-2 text-xs text-rose-900 placeholder-rose-300 focus:outline-none focus:ring-2 focus:ring-rose-500/20"
                 >
-                <input 
-                    type="password" 
-                    name="password" 
-                    placeholder="Masukkan kata sandi akun" 
+                <input
+                    type="password"
+                    name="password"
+                    placeholder="Masukkan kata sandi akun"
                     class="block w-full rounded-xl border border-rose-300 bg-white px-3 py-2 text-xs text-rose-900 placeholder-rose-300 focus:outline-none focus:ring-2 focus:ring-rose-500/20"
                 >
                 <button type="submit" class="w-full rounded-xl border border-rose-300 bg-white py-2 text-xs font-bold text-rose-700 hover:bg-rose-100 transition shadow-2xs">
@@ -221,6 +232,7 @@
                 </button>
             </form>
         </div>
+        @endif
     </div>
 </div>
 @endsection
