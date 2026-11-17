@@ -63,6 +63,7 @@
     </style>
 </head>
 <body>
+@include('partials.nav-global')
 <div class="shell">
     <aside class="sidebar">
         <a class="brand" href="{{ route('schedules.public') }}"><span class="brand-mark">P</span> PilahKu</a>

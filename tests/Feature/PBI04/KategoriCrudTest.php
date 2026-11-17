@@ -1,14 +1,30 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\PBI04;
 
 use App\Models\KategoriSampah;
+use App\Models\Pengguna;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class KategoriCrudTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Kelola kategori hanya untuk Admin.
+        $this->actingAs(Pengguna::factory()->admin()->create());
+    }
+
+    public function test_kelola_kategori_hanya_untuk_admin(): void
+    {
+        auth()->logout();
+        $this->get(route('kategori.index'))->assertRedirect(route('login'));
+
+        $this->actingAs(Pengguna::factory()->create())->get(route('kategori.index'))->assertForbidden();
+    }
 
     public function test_tc_kat_01_menampilkan_daftar_kategori(): void
     {

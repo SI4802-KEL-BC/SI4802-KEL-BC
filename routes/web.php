@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\QrTongController;
 use App\Http\Controllers\Admin\SchedulePageController;
 use App\Http\Controllers\Admin\VerifikasiController;
 use App\Http\Controllers\AktivitasController;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\PanduanPemilahanController;
 use App\Http\Controllers\PenggunaController;
@@ -18,8 +19,12 @@ Route::get('/panduan', [PanduanPemilahanController::class, 'index'])->name('pand
 Route::get('/panduan/kategori/{id}', [PanduanPemilahanController::class, 'showKategori'])->name('panduan.kategori');
 Route::get('/panduan/{slug}', [PanduanPemilahanController::class, 'show'])->name('panduan.show');
 
-// STUB PBI-13 - diganti saat PBI-01 masuk: halaman login tampilan saja (tanpa POST), agar redirect "auth" berfungsi.
-Route::get('/login', fn () => view('auth.login'))->name('login');
+// Masuk dan keluar akun (tabel pengguna: email_kampus + kata_sandi).
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AuthController::class, 'form'])->name('login');
+    Route::post('/login', [AuthController::class, 'masuk'])->middleware('throttle:10,1')->name('login.masuk');
+});
+Route::post('/logout', [AuthController::class, 'keluar'])->middleware('auth')->name('logout');
 
 // PBI-13: halaman pengguna (wajib login).
 Route::middleware('auth')->group(function () {
@@ -53,10 +58,13 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin/lokasi')->name('admin.l
     Route::post('/{lokasi}/toggle', [LokasiController::class, 'toggle'])->name('toggle');
 });
 
-Route::get('/kategori', [KategoriController::class, 'index'])->name('kategori.index');
-Route::post('/kategori', [KategoriController::class, 'store'])->name('kategori.store');
-Route::put('/kategori/{kategori}', [KategoriController::class, 'update'])->name('kategori.update');
-Route::post('/kategori/{kategori}/toggle', [KategoriController::class, 'toggle'])->name('kategori.toggle');
+// PBI-04: kelola kategori sampah (hanya Admin).
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/kategori', [KategoriController::class, 'index'])->name('kategori.index');
+    Route::post('/kategori', [KategoriController::class, 'store'])->name('kategori.store');
+    Route::put('/kategori/{kategori}', [KategoriController::class, 'update'])->name('kategori.update');
+    Route::post('/kategori/{kategori}/toggle', [KategoriController::class, 'toggle'])->name('kategori.toggle');
+});
 
 Route::get('/jadwal-pengangkutan', [PublicScheduleController::class, 'index'])
     ->name('schedules.public');
@@ -77,3 +85,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile/edit', [PenggunaController::class, 'edit'])->name('profil.edit');
     Route::put('/profile', [PenggunaController::class, 'update'])->name('profil.update');
 });
+
+// STUB PBI-13 - hapus saat PBI-01 masuk: route bantu khusus lokal (login pintas & simulator tong).
+// routes/dev.php tidak di-commit, jadi hanya dimuat bila filenya ada dan APP_ENV=local.
+if (app()->environment('local') && is_file(__DIR__.'/dev.php')) {
+    require __DIR__.'/dev.php';
+}

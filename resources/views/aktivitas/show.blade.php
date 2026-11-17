@@ -22,31 +22,36 @@
 @section('judul', 'Detail ' . $kode . ' · PilahKu')
 
 @section('breadcrumb')
-    <a href="{{ url('/pindai') }}" class="hover:text-[#0F2A1C]">Aktivitas</a>
-    <span class="mx-2 text-[#B7C4BC]">/</span>
-    <span class="font-semibold text-[#0F2A1C]">Detail {{ $kode }}</span>
+    <a href="{{ url('/aktivitas') }}" class="hover:text-[#0F2A1C]">Aktivitas Saya</a>
+    <span class="mx-2 text-[#C5D0CA]">/</span>
+    <span class="font-medium text-[#0F2A1C]">Detail {{ $kode }}</span>
 @endsection
 
 @section('isi')
+<a href="{{ url('/aktivitas') }}" class="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#6B7A72] transition hover:text-[#15803D]">
+    <span class="rotate-180">@include('partials.ikon', ['n' => 'panah', 'c' => 'h-3.5 w-3.5'])</span>
+    Kembali ke riwayat
+</a>
+
 {{-- Judul + aksi --}}
-<div class="flex flex-wrap items-start justify-between gap-4">
+<div class="mt-3 flex flex-wrap items-start justify-between gap-4">
     <div>
         <div class="flex flex-wrap items-center gap-3">
-            <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">Detail Aktivitas {{ $kode }}</h1>
+            <h1 class="text-2xl font-semibold tracking-tight text-[#0B2E1D] sm:text-[28px]">Detail Aktivitas {{ $kode }}</h1>
             @include('partials.badge-status', ['status' => $status])
         </div>
-        <p class="mt-1 text-sm text-[#5B6B62]">Tercatat pada {{ $aktivitas->tanggal_waktu->translatedFormat('d M Y, H:i') }} melalui pemindaian QR ID</p>
+        <p class="mt-1 text-sm text-[#6B7A72]">Tercatat pada {{ $aktivitas->tanggal_waktu->locale('id')->translatedFormat('d M Y, H:i') }} melalui pemindaian QR tong sampah</p>
     </div>
 
     @if ($bolehUbah)
-        <div class="flex gap-3">
+        <div class="flex gap-2">
             <button type="button" onclick="document.getElementById('modal-batal').showModal()"
-                    class="inline-flex h-11 items-center gap-2 rounded-xl border border-[#DC2626] bg-white px-4 text-sm font-semibold text-[#DC2626] transition hover:bg-[#FEF2F2]">
+                    class="inline-flex h-10 items-center gap-2 rounded-lg border border-[#FECACA] bg-white px-4 text-sm font-semibold text-[#DC2626] shadow-sm transition hover:bg-[#FEF2F2]">
                 @include('partials.ikon', ['n' => 'sampah', 'c' => 'h-4 w-4'])
                 Batalkan Aktivitas
             </button>
             <button type="button" onclick="document.getElementById('modal-catatan').showModal()"
-                    class="inline-flex h-11 items-center gap-2 rounded-xl bg-[#16A34A] px-4 text-sm font-semibold text-white transition hover:bg-[#15803D]">
+                    class="inline-flex h-10 items-center gap-2 rounded-lg bg-[#16A34A] px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#15803D]">
                 @include('partials.ikon', ['n' => 'pensil', 'c' => 'h-4 w-4'])
                 Ubah Catatan
             </button>
@@ -95,35 +100,35 @@
 
 <div class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
     {{-- Informasi aktivitas --}}
-    <section class="rounded-2xl border border-[#E1EAE4] bg-white p-6 sm:p-7">
+    <section class="rounded-xl border border-[#E4EBE7] bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)] p-6 sm:p-7">
         <h2 class="text-lg font-semibold">Informasi Aktivitas</h2>
 
         <dl class="mt-5 grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3">
             <div>
-                <dt class="text-xs text-[#5B6B62]">Kategori</dt>
+                <dt class="text-xs text-[#6B7A72]">Kategori</dt>
                 <dd class="mt-1 flex items-center gap-2 text-sm font-semibold">
                     <span class="h-2.5 w-2.5 rounded-full" style="background: {{ $warnaKategori }}"></span>
                     {{ $aktivitas->kategori->nama_kategori ?? 'Belum dikenali' }}
                 </dd>
             </div>
             <div>
-                <dt class="text-xs text-[#5B6B62]">Lokasi Tempat Sampah</dt>
+                <dt class="text-xs text-[#6B7A72]">Lokasi Tempat Sampah</dt>
                 <dd class="mt-1 text-sm font-semibold">{{ $aktivitas->lokasi->nama_lokasi ?? '-' }}@if ($aktivitas->lokasi?->kode_titik) – {{ $aktivitas->lokasi->kode_titik }}@endif</dd>
             </div>
             <div>
-                <dt class="text-xs text-[#5B6B62]">Tanggal &amp; Waktu</dt>
+                <dt class="text-xs text-[#6B7A72]">Tanggal &amp; Waktu</dt>
                 <dd class="mt-1 text-sm font-semibold">{{ $aktivitas->tanggal_waktu->translatedFormat('d M Y, H:i') }}</dd>
             </div>
             <div>
-                <dt class="text-xs text-[#5B6B62]">Jumlah</dt>
+                <dt class="text-xs text-[#6B7A72]">Jumlah</dt>
                 <dd class="mt-1 text-sm font-semibold">{{ rtrim(rtrim(number_format($aktivitas->jumlah, 2, ',', '.'), '0'), ',') }} item</dd>
             </div>
             <div>
-                <dt class="text-xs text-[#5B6B62]">ID Aktivitas</dt>
+                <dt class="text-xs text-[#6B7A72]">ID Aktivitas</dt>
                 <dd class="mt-1 text-sm font-semibold">{{ $kode }}</dd>
             </div>
             <div>
-                <dt class="text-xs text-[#5B6B62]">Poin</dt>
+                <dt class="text-xs text-[#6B7A72]">Poin</dt>
                 <dd class="mt-1 text-sm font-semibold {{ $status === 'Terverifikasi' ? 'text-[#15803D]' : '' }}">
                     {{ $status === 'Terverifikasi' ? '+' . $info['poin'] : ($status === 'Ditolak' ? '0' : '–') }}
                 </dd>
@@ -132,7 +137,7 @@
 
         <div class="mt-6 border-t border-[#E9F0EC] pt-5">
             <div class="flex items-center justify-between">
-                <h3 class="text-xs text-[#5B6B62]">Catatan</h3>
+                <h3 class="text-xs text-[#6B7A72]">Catatan</h3>
                 @if ($bolehUbah)
                     <button type="button" onclick="document.getElementById('modal-catatan').showModal()" class="text-xs font-semibold text-[#15803D] hover:underline">Ubah</button>
                 @endif
@@ -141,7 +146,7 @@
         </div>
 
         <div class="mt-5">
-            <h3 class="text-xs text-[#5B6B62]">Foto dari kamera tempat sampah</h3>
+            <h3 class="text-xs text-[#6B7A72]">Foto dari kamera tempat sampah</h3>
             @if ($aktivitas->foto_bukti)
                 <img src="{{ asset('storage/' . $aktivitas->foto_bukti) }}" alt="Foto sampah {{ $kode }}" class="mt-2 max-h-72 w-full rounded-xl bg-[#E8F2EC] object-contain">
             @else
@@ -157,7 +162,7 @@
     <div class="space-y-6">
         @include('partials.status-verifikasi', ['aktivitas' => $aktivitas, 'info' => $info])
 
-        <section class="rounded-2xl border border-[#E1EAE4] bg-white p-6">
+        <section class="rounded-xl border border-[#E4EBE7] bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)] p-6">
             <h2 class="text-base font-semibold">Yang bisa kamu lakukan</h2>
             <ul class="mt-4 space-y-3 text-sm">
                 @if ($menunggu)
@@ -179,17 +184,17 @@
             <div class="flex items-start justify-between gap-4">
                 <div>
                     <h2 class="text-lg font-semibold">Ubah Catatan</h2>
-                    <p class="mt-1 text-sm text-[#5B6B62]">Tambahkan keterangan untuk aktivitas {{ $kode }}.</p>
+                    <p class="mt-1 text-sm text-[#6B7A72]">Tambahkan keterangan untuk aktivitas {{ $kode }}.</p>
                 </div>
-                <button type="button" onclick="this.closest('dialog').close()" class="rounded-lg p-1 text-[#5B6B62] hover:bg-[#F3F7F4]" aria-label="Tutup">@include('partials.ikon', ['n' => 'silang', 'c' => 'h-5 w-5'])</button>
+                <button type="button" onclick="this.closest('dialog').close()" class="rounded-lg p-1 text-[#6B7A72] hover:bg-[#F5F7F6]" aria-label="Tutup">@include('partials.ikon', ['n' => 'silang', 'c' => 'h-5 w-5'])</button>
             </div>
-            <label for="catatan" class="mt-5 block text-sm font-semibold">Catatan <span class="font-normal text-[#5B6B62]">(opsional)</span></label>
+            <label for="catatan" class="mt-5 block text-sm font-semibold">Catatan <span class="font-normal text-[#6B7A72]">(opsional)</span></label>
             <textarea id="catatan" name="catatan" rows="4" maxlength="255"
                       class="mt-2 w-full rounded-xl border border-[#D5E2DA] px-4 py-3 text-sm outline-none placeholder:text-[#9AAFA2] focus:border-[#16A34A] focus:ring-4 focus:ring-[#16A34A]/15"
                       placeholder="Contoh: botol plastik sudah dibilas dan labelnya dilepas">{{ old('catatan', $aktivitas->catatan) }}</textarea>
             <p class="mt-1 text-right text-xs text-[#9AAFA2]">Maks. 255 karakter</p>
             <div class="mt-5 flex justify-end gap-3">
-                <button type="button" onclick="this.closest('dialog').close()" class="h-11 rounded-xl border border-[#D5E2DA] px-5 text-sm font-semibold hover:bg-[#F3F7F4]">Kembali</button>
+                <button type="button" onclick="this.closest('dialog').close()" class="h-11 rounded-xl border border-[#D5E2DA] px-5 text-sm font-semibold hover:bg-[#F5F7F6]">Kembali</button>
                 <button type="submit" class="h-11 rounded-xl bg-[#16A34A] px-5 text-sm font-semibold text-white hover:bg-[#15803D]">Simpan Catatan</button>
             </div>
         </form>
@@ -202,11 +207,11 @@
             @method('DELETE')
             <span class="grid h-14 w-14 place-items-center rounded-full bg-[#FEE2E2] text-[#DC2626]">@include('partials.ikon', ['n' => 'peringatan', 'c' => 'h-7 w-7'])</span>
             <h2 class="mt-4 text-xl font-bold">Batalkan aktivitas ini?</h2>
-            <p class="mt-2 text-sm leading-relaxed text-[#5B6B62]">
+            <p class="mt-2 text-sm leading-relaxed text-[#6B7A72]">
                 Aktivitas {{ $kode }} ({{ $aktivitas->kategori->nama_kategori ?? 'sampah' }}, {{ $aktivitas->lokasi->nama_lokasi ?? '-' }}) akan dihapus dan tidak diproses. Tindakan ini tidak dapat diurungkan.
             </p>
             <div class="mt-6 flex justify-end gap-3">
-                <button type="button" onclick="this.closest('dialog').close()" class="h-11 rounded-xl border border-[#D5E2DA] px-5 text-sm font-semibold hover:bg-[#F3F7F4]">Kembali</button>
+                <button type="button" onclick="this.closest('dialog').close()" class="h-11 rounded-xl border border-[#D5E2DA] px-5 text-sm font-semibold hover:bg-[#F5F7F6]">Kembali</button>
                 <button type="submit" class="h-11 rounded-xl bg-[#DC2626] px-5 text-sm font-semibold text-white hover:bg-[#B91C1C]">Ya, Batalkan</button>
             </div>
         </form>

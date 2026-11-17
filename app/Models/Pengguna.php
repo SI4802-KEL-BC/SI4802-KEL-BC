@@ -51,6 +51,11 @@ class Pengguna extends Authenticatable
         return $this->kata_sandi;
     }
 
+    public function getAuthPasswordName(): string
+    {
+        return 'kata_sandi';
+    }
+
     public function routeNotificationForMail(): string
     {
         return $this->email_kampus;

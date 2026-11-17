@@ -11,6 +11,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased">
+@include('partials.nav-global')
 
 <div class="space-y-6 p-6 max-w-7xl mx-auto" x-data="{
     isEdit: false,

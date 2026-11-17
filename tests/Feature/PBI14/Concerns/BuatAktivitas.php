@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Pbi14\Concerns;
+namespace Tests\Feature\PBI14\Concerns;
 
 use App\Models\AktivitasPemilahan;
 use App\Models\KategoriSampah;

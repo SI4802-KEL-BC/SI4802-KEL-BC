@@ -1,12 +1,12 @@
 <?php
 
-namespace Tests\Feature\Pbi14;
+namespace Tests\Feature\PBI14;
 
 use App\Models\AktivitasPemilahan;
 use App\Models\KategoriSampah;
 use App\Models\Pengguna;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\Feature\Pbi14\Concerns\BuatAktivitas;
+use Tests\Feature\PBI14\Concerns\BuatAktivitas;
 use Tests\TestCase;
 
 /** PBI-14 · TC-14-03, 04, 07, 08 (filter riwayat). */

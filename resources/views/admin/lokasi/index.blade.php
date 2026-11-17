@@ -21,6 +21,7 @@
     </style>
 </head>
 <body>
+@include('partials.nav-global')
 <main>
     <h1>Kelola Lokasi Tempat Sampah</h1>
     <p class="muted">Tambah titik lokasi, atur kategori yang diterima, dan nonaktifkan titik yang tidak digunakan.</p>

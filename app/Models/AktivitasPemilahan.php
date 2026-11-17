@@ -141,11 +141,11 @@ class AktivitasPemilahan extends Model
             ->when(! empty($filter['status']), fn (Builder $q) => $q->where('status_verifikasi', $filter['status']));
     }
 
-    /** PBI-14: riwayat milik pengguna, terbaru di atas, eager load kategori & lokasi. */
+    /** PBI-14: riwayat milik pengguna, terbaru di atas, eager load kategori, lokasi & transaksiPoin (sumber poin sama dengan detail PBI-15). */
     public static function lihatRiwayat(Pengguna $pengguna, array $filter = [], int $perHalaman = 10): LengthAwarePaginator
     {
         return static::query()
-            ->with(['kategori', 'lokasi'])
+            ->with(['kategori', 'lokasi', 'transaksiPoin'])
             ->milik($pengguna)
             ->filter($filter)
             ->orderByDesc('tanggal_waktu')

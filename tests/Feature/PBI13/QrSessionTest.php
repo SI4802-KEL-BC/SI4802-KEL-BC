@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Pbi13;
+namespace Tests\Feature\PBI13;
 
 use App\Models\AktivitasPemilahan;
 use App\Models\LokasiTempatSampah;
@@ -8,7 +8,7 @@ use App\Models\Pengguna;
 use App\Models\SesiPembuangan;
 use App\Services\PindaiTongService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\Feature\Pbi13\Concerns\SiapkanPerangkat;
+use Tests\Feature\PBI13\Concerns\SiapkanPerangkat;
 use Tests\TestCase;
 
 /**

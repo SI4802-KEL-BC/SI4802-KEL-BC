@@ -15,9 +15,9 @@
 @section('judul', 'Pindai QR · PilahKu')
 
 @section('breadcrumb')
-    <span>Aktivitas</span>
-    <span class="mx-2 text-[#B7C4BC]">/</span>
-    <span class="font-semibold text-[#0F2A1C]">Pindai QR</span>
+    <a href="{{ url('/aktivitas') }}" class="hover:text-[#0F2A1C]">Aktivitas Saya</a>
+    <span class="mx-2 text-[#C5D0CA]">/</span>
+    <span class="font-medium text-[#0F2A1C]">Pindai QR</span>
 @endsection
 
 @section('isi')
@@ -29,8 +29,8 @@
 
 <div class="flex flex-wrap items-end justify-between gap-4">
     <div>
-        <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">Pindai QR Tong Sampah</h1>
-        <p class="mt-1 text-sm text-[#5B6B62]">Pindai QR yang tertempel di tong sampah. Aktivitas pemilahanmu tercatat otomatis, tanpa isi formulir.</p>
+        <h1 class="text-2xl font-semibold tracking-tight text-[#0B2E1D] sm:text-[28px]">Pindai QR Tong Sampah</h1>
+        <p class="mt-1 text-sm text-[#6B7A72]">Pindai QR yang tertempel di tong sampah. Aktivitas pemilahanmu tercatat otomatis, tanpa isi formulir.</p>
     </div>
 </div>
 
@@ -74,7 +74,7 @@
 
 <div class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
     {{-- Kartu pemindai --}}
-    <section class="self-start rounded-2xl border border-[#E1EAE4] bg-white p-6 shadow-[0_1px_2px_rgba(15,42,28,.04)] sm:p-8">
+    <section class="self-start rounded-xl border border-[#E4EBE7] bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)] p-6 shadow-[0_1px_2px_rgba(15,42,28,.04)] sm:p-8">
         <div class="flex items-center justify-between">
             <h2 class="text-lg font-semibold">Pindai QR Tong</h2>
             <span class="inline-flex items-center gap-1.5 rounded-full bg-[#E8F7EE] px-2.5 py-1 text-xs font-semibold text-[#15803D]">
@@ -95,10 +95,10 @@
             <div id="placeholder-kamera" class="flex flex-col items-center rounded-2xl border border-dashed border-[#D5E2DA] bg-[#F6FAF7] px-4 py-10 text-center">
                 <span class="grid h-14 w-14 place-items-center rounded-full bg-[#E8F7EE] text-[#16A34A]">@include('partials.ikon', ['n' => 'pindai', 'c' => 'h-7 w-7'])</span>
                 <p class="mt-3 text-sm font-semibold">Arahkan kamera ke QR di tong sampah</p>
-                <p class="mt-1 max-w-xs text-xs text-[#5B6B62]">Kamera hanya dipakai untuk membaca QR dan tidak menyimpan gambar.</p>
+                <p class="mt-1 max-w-xs text-xs text-[#6B7A72]">Kamera hanya dipakai untuk membaca QR dan tidak menyimpan gambar.</p>
             </div>
 
-            <p id="status-kamera" class="mt-3 hidden rounded-xl bg-[#F3F7F4] px-4 py-2.5 text-sm text-[#5B6B62]" role="status"></p>
+            <p id="status-kamera" class="mt-3 hidden rounded-xl bg-[#F5F7F6] px-4 py-2.5 text-sm text-[#6B7A72]" role="status"></p>
 
             <button type="button" id="tombol-kamera"
                     class="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#16A34A] text-sm font-semibold text-white transition hover:bg-[#15803D] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#16A34A]/30">
@@ -110,7 +110,7 @@
         {{-- Cadangan: kode tong manual --}}
         <div class="mt-8 border-t border-[#EEF3F0] pt-6">
             <h3 class="text-sm font-semibold">Atau masukkan kode tong</h3>
-            <p class="mt-1 text-xs text-[#5B6B62]">Kode tercetak di bawah QR pada tong, misalnya <code class="rounded bg-[#F3F7F4] px-1">DEV-0001</code>.</p>
+            <p class="mt-1 text-xs text-[#6B7A72]">Kode tercetak di bawah QR pada tong, misalnya <code class="rounded bg-[#F5F7F6] px-1">DEV-0001</code>.</p>
             <form method="POST" action="{{ route('pindai.simpan') }}" class="mt-3 flex flex-col gap-3 sm:flex-row">
                 @csrf
                 <label for="kode_perangkat" class="sr-only">Kode tong</label>
@@ -121,7 +121,7 @@
             </form>
         </div>
 
-        <p class="mt-6 text-xs leading-relaxed text-[#5B6B62]">
+        <p class="mt-6 text-xs leading-relaxed text-[#6B7A72]">
             Setelah QR dipindai, kamu punya {{ intdiv($sessionTtl, 60) }} menit untuk membuang sampah. Satu tong hanya melayani satu pengguna pada satu waktu.
             Kamera HP bawaan juga bisa dipakai: pindai QR-nya, lalu browser akan membuka halaman ini.
         </p>
@@ -129,7 +129,7 @@
 
     {{-- Kolom kanan --}}
     <div class="space-y-6">
-        <section class="rounded-2xl border border-[#E1EAE4] bg-white p-6">
+        <section class="rounded-xl border border-[#E4EBE7] bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)] p-6">
             <h2 class="text-base font-semibold">Cara Mencatat Aktivitas</h2>
             <ol class="mt-4 space-y-4">
                 @foreach ([
@@ -141,14 +141,14 @@
                         <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#E8F7EE] text-[#15803D]">@include('partials.ikon', ['n' => $ikonLangkah, 'c' => 'h-[18px] w-[18px]'])</span>
                         <div>
                             <p class="text-sm font-semibold">{{ $i + 1 }}. {{ $judulLangkah }}</p>
-                            <p class="mt-0.5 text-xs leading-relaxed text-[#5B6B62]">{{ $teksLangkah }}</p>
+                            <p class="mt-0.5 text-xs leading-relaxed text-[#6B7A72]">{{ $teksLangkah }}</p>
                         </div>
                     </li>
                 @endforeach
             </ol>
         </section>
 
-        <section class="rounded-2xl border border-[#E1EAE4] bg-white p-6">
+        <section class="rounded-xl border border-[#E4EBE7] bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)] p-6">
             <h2 class="text-base font-semibold">Ketentuan Poin</h2>
             <ul class="mt-4 space-y-3 text-sm">
                 <li class="flex gap-2.5"><span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#16A34A]"></span><span>Sampah yang terdeteksi sesuai kategori tempat sampah langsung <strong>Terverifikasi</strong> dan mendapat poin.</span></li>
@@ -157,21 +157,21 @@
             </ul>
         </section>
 
-        <section class="rounded-2xl border border-[#E1EAE4] bg-white p-6">
+        <section class="rounded-xl border border-[#E4EBE7] bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)] p-6">
             <h2 class="text-base font-semibold">Aktivitas Terakhir</h2>
             @forelse ($aktivitasTerbaru as $item)
-                <a href="{{ url('/aktivitas/' . $item->id_aktivitas) }}" class="-mx-2 mt-1 block rounded-xl px-2 py-2.5 transition first:mt-3 hover:bg-[#F3F7F4]">
+                <a href="{{ url('/aktivitas/' . $item->id_aktivitas) }}" class="-mx-2 mt-1 block rounded-xl px-2 py-2.5 transition first:mt-3 hover:bg-[#F5F7F6]">
                     <div class="flex items-center justify-between gap-2">
                         <p class="truncate text-sm font-semibold">{{ $item->kategori->nama_kategori ?? 'Belum dikenali' }}</p>
                         @include('partials.badge-status', ['status' => $item->status_verifikasi])
                     </div>
-                    <p class="mt-0.5 truncate text-xs text-[#5B6B62]">{{ $item->lokasi->nama_lokasi ?? '-' }} · {{ $item->tanggal_waktu->translatedFormat('d M, H:i') }}</p>
+                    <p class="mt-0.5 truncate text-xs text-[#6B7A72]">{{ $item->lokasi->nama_lokasi ?? '-' }} · {{ $item->tanggal_waktu->translatedFormat('d M, H:i') }}</p>
                 </a>
             @empty
                 <div class="mt-3 flex flex-col items-center rounded-xl border border-dashed border-[#D5E2DA] px-4 py-6 text-center">
                     <span class="text-[#9AAFA2]">@include('partials.ikon', ['n' => 'kotak-masuk', 'c' => 'h-6 w-6'])</span>
                     <p class="mt-2 text-sm font-medium">Belum ada aktivitas</p>
-                    <p class="text-xs text-[#5B6B62]">Aktivitas pertamamu muncul di sini setelah foto sampah diterima.</p>
+                    <p class="text-xs text-[#6B7A72]">Aktivitas pertamamu muncul di sini setelah foto sampah diterima.</p>
                 </div>
             @endforelse
         </section>
@@ -217,8 +217,8 @@
             status.classList.remove('hidden');
             status.classList.toggle('bg-[#FEF2F2]', !!galat);
             status.classList.toggle('text-[#B91C1C]', !!galat);
-            status.classList.toggle('bg-[#F3F7F4]', !galat);
-            status.classList.toggle('text-[#5B6B62]', !galat);
+            status.classList.toggle('bg-[#F5F7F6]', !galat);
+            status.classList.toggle('text-[#6B7A72]', !galat);
         };
         const berhenti = () => {
             clearInterval(pewaktu); pewaktu = null;

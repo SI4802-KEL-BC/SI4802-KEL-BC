@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Pbi15;
+namespace Tests\Feature\PBI15;
 
 use App\Models\AktivitasPemilahan;
 use App\Models\AturanReward;
@@ -10,7 +10,7 @@ use App\Notifications\HasilVerifikasiNotification;
 use Illuminate\Contracts\Notifications\Dispatcher;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
-use Tests\Feature\Pbi13\Concerns\SiapkanPerangkat;
+use Tests\Feature\PBI13\Concerns\SiapkanPerangkat;
 use Tests\TestCase;
 
 /** PBI-15 · TC-15-05: notifikasi hasil verifikasi (otomatis & Admin), tepat sekali, tidak saat Menunggu. */
