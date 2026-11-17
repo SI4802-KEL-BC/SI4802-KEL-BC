@@ -5,6 +5,7 @@ namespace Tests\Feature\PBI10;
 use App\Models\KategoriSampah;
 use App\Models\LokasiTempatSampah;
 use App\Models\Pengguna;
+use Database\Seeders\PilahkuDemoSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -69,6 +70,17 @@ class LokasiCrudTest extends TestCase
             ->assertSee('Kantin Satu')
             ->assertSee('Pendopo Dua')
             ->assertSee('peta-daftar', false);
+    }
+
+    public function test_lokasi_dari_seeder_demo_punya_koordinat_dan_tampil_di_peta(): void
+    {
+        $this->seed(PilahkuDemoSeeder::class);
+
+        $this->assertSame(0, LokasiTempatSampah::whereNull('latitude')->orWhereNull('longitude')->count());
+
+        $this->get(route('admin.lokasi.index'))
+            ->assertOk()
+            ->assertViewHas('titikPeta', fn ($peta) => $peta->pluck('kode')->sort()->values()->all() === ['T-01', 'T-02', 'T-03']);
     }
 
     // TC-10-07

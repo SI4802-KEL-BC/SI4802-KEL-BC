@@ -33,11 +33,14 @@ class PilahkuDemoSeeder extends Seeder
         'Kaca' => ['KCA', '#14b8a6', 15],
     ];
 
-    /** kode_perangkat => [nama_lokasi, kode_titik, area, kategori yang diterima] */
+    /**
+     * kode_perangkat => [nama_lokasi, kode_titik, area, kategori yang diterima, latitude, longitude]
+     * Koordinat perkiraan di kawasan Telkom University (PBI-10); sesuaikan dengan titik asli.
+     */
     private const LOKASI = [
-        'DEV-0001' => ['Kantin TULT', 'T-01', 'Kantin', ['Plastik', 'Kertas']],
-        'DEV-0002' => ['Gedung Kuliah Umum', 'T-02', 'Akademik', ['Organik']],
-        'DEV-0003' => ['Gedung Rektorat', 'T-03', 'Administrasi', ['Logam', 'Kaca', 'Plastik']],
+        'DEV-0001' => ['Kantin TULT', 'T-01', 'Kantin', ['Plastik', 'Kertas'], -6.974700, 107.630400],
+        'DEV-0002' => ['Gedung Kuliah Umum', 'T-02', 'Akademik', ['Organik'], -6.975200, 107.629700],
+        'DEV-0003' => ['Gedung Rektorat', 'T-03', 'Administrasi', ['Logam', 'Kaca', 'Plastik'], -6.975500, 107.630800],
     ];
 
     public function run(): void
@@ -65,10 +68,13 @@ class PilahkuDemoSeeder extends Seeder
 
         // Lokasi + kode perangkat; kategori yang diterima di-sync persis sesuai daftar (aman dijalankan ulang).
         $lokasiDemo = [];
-        foreach (self::LOKASI as $kodePerangkat => [$namaLokasi, $kodeTitik, $area, $diterima]) {
+        foreach (self::LOKASI as $kodePerangkat => [$namaLokasi, $kodeTitik, $area, $diterima, $lat, $lng]) {
             $lokasiDemo[$kodePerangkat] = LokasiTempatSampah::updateOrCreate(
                 ['kode_perangkat' => $kodePerangkat],
-                ['nama_lokasi' => $namaLokasi, 'kode_titik' => $kodeTitik, 'area' => $area, 'status' => 'aktif'],
+                [
+                    'nama_lokasi' => $namaLokasi, 'kode_titik' => $kodeTitik, 'area' => $area, 'status' => 'aktif',
+                    'latitude' => $lat, 'longitude' => $lng, // tanpa koordinat, titik tidak tampil di peta
+                ],
             );
             $lokasiDemo[$kodePerangkat]->kategoriDiterima()->sync(
                 array_map(fn (string $nama) => $kategori[$nama]->id_kategori, $diterima),
