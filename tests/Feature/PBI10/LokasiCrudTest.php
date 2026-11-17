@@ -6,6 +6,7 @@ use App\Models\KategoriSampah;
 use App\Models\LokasiTempatSampah;
 use App\Models\Pengguna;
 use Database\Seeders\PilahkuDemoSeeder;
+use Database\Seeders\TitikLokasiSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -81,6 +82,24 @@ class LokasiCrudTest extends TestCase
         $this->get(route('admin.lokasi.index'))
             ->assertOk()
             ->assertViewHas('titikPeta', fn ($peta) => $peta->pluck('kode')->sort()->values()->all() === ['T-01', 'T-02', 'T-03']);
+    }
+
+    public function test_seeder_titik_lokasi_mengisi_data_contoh_mockup(): void
+    {
+        $this->seed(TitikLokasiSeeder::class);
+        $this->seed(TitikLokasiSeeder::class); // aman dijalankan ulang
+
+        $this->assertSame(6, LokasiTempatSampah::count());
+        $this->assertSame(0, LokasiTempatSampah::whereNull('latitude')->orWhereNull('longitude')->count());
+        $this->assertSame('nonaktif', LokasiTempatSampah::where('kode_titik', 'E3')->value('status'));
+        $this->assertEqualsCanonicalizing(
+            ['Plastik', 'Kertas'],
+            LokasiTempatSampah::where('kode_titik', 'A2')->firstOrFail()->kategori->pluck('nama_kategori')->all(),
+        );
+
+        // Semua titik (termasuk nonaktif, berwarna abu-abu) dikirim ke peta admin.
+        $this->get(route('admin.lokasi.index'))
+            ->assertViewHas('titikPeta', fn ($peta) => $peta->count() === 6);
     }
 
     // TC-10-07

@@ -38,9 +38,10 @@ class PilahkuDemoSeeder extends Seeder
      * Koordinat perkiraan di kawasan Telkom University (PBI-10); sesuaikan dengan titik asli.
      */
     private const LOKASI = [
-        'DEV-0001' => ['Kantin TULT', 'T-01', 'Kantin', ['Plastik', 'Kertas'], -6.974700, 107.630400],
-        'DEV-0002' => ['Gedung Kuliah Umum', 'T-02', 'Akademik', ['Organik'], -6.975200, 107.629700],
-        'DEV-0003' => ['Gedung Rektorat', 'T-03', 'Administrasi', ['Logam', 'Kaca', 'Plastik'], -6.975500, 107.630800],
+        // Sengaja berbeda dari titik TitikLokasiSeeder (A1, B1, D1, ...) agar penanda di peta tidak bertumpuk.
+        'DEV-0001' => ['Kantin TULT', 'T-01', 'Kantin', ['Plastik', 'Kertas'], -6.973300, 107.630300],
+        'DEV-0002' => ['Gedung Kuliah Umum', 'T-02', 'Akademik', ['Organik'], -6.972800, 107.629200],
+        'DEV-0003' => ['Gedung Rektorat', 'T-03', 'Administrasi', ['Logam', 'Kaca', 'Plastik'], -6.973900, 107.631800],
     ];
 
     public function run(): void
