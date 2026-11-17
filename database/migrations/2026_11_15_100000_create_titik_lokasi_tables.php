@@ -14,7 +14,7 @@ return new class extends Migration
             $t->string('kode_titik', 10)->unique();
             $t->string('area', 50);
             $t->string('keterangan', 255)->nullable();
-            $t->string('kode_perangkat', 20)->unique();
+            $t->string('kode_perangkat', 30)->nullable()->unique();
             $t->decimal('latitude', 9, 6);
             $t->decimal('longitude', 9, 6);
             $t->string('fasilitas', 255)->nullable();

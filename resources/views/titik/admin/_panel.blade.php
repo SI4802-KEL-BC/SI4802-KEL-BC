@@ -65,10 +65,8 @@
         <label for="fasilitas">Fasilitas</label>
         <input id="fasilitas" name="fasilitas" type="text" maxlength="255" placeholder="Tong terpisah, area beratap, dekat wastafel" value="{{ old('fasilitas', $titik->fasilitas) }}">
 
-        @if ($titik->exists)
-            <label>Kode perangkat</label>
-            <div class="muted">{{ $titik->kode_perangkat }} (dibuat otomatis)</div>
-        @endif
+        <label for="kode_perangkat">Kode perangkat</label>
+        <input id="kode_perangkat" name="kode_perangkat" type="text" maxlength="30" placeholder="Contoh: PRK-A2 (dipakai PBI-13)" value="{{ old('kode_perangkat', $titik->kode_perangkat) }}">
 
         <label class="cek">
             <input type="checkbox" name="aktif" value="1" @checked($aktif)>

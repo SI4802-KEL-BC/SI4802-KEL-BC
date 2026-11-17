@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Support\Str;
+
 
 class TitikLokasi extends Model
 {
@@ -28,13 +28,6 @@ class TitikLokasi extends Model
         return $this->belongsToMany(KategoriTitik::class, 'titik_lokasi_kategori', 'titik_lokasi_id', 'kategori_titik_id');
     }
 
-    /** Kode perangkat unik, dibuat otomatis (FR-10). */
-    public static function buatKodePerangkat(): string
-    {
-        do {
-            $kode = 'PRK-' . strtoupper(Str::random(6));
-        } while (static::where('kode_perangkat', $kode)->exists());
 
-        return $kode;
-    }
+
 }

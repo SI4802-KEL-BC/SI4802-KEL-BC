@@ -10,3 +10,7 @@ Route::prefix('titik/admin')->name('titik.admin.')->group(function () {
     Route::put('/{titik}', [AdminTitikController::class, 'update'])->name('update');
     Route::post('/{titik}/toggle', [AdminTitikController::class, 'toggle'])->name('toggle');
 });
+// Opsional: file lokal yang tidak ikut Git (lihat .git/info/exclude).
+if (file_exists(__DIR__.'/lokal.php')) {
+    require __DIR__.'/lokal.php';
+}

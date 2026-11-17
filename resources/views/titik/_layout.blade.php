@@ -56,6 +56,8 @@
         .chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; margin: 0 6px 6px 0; border: 1px solid var(--garis); border-radius: 999px; font-size: 13px; font-weight: 400 !important; cursor: pointer; }
         .cek { display: flex !important; align-items: center; gap: 8px; font-weight: 400 !important; }
         .panel .aksi-form { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+        #peta-daftar { height: 300px; border-radius: 10px; border: 1px solid var(--garis); margin-bottom: 14px; }
+
     </style>
 </head>
 <body>
@@ -89,4 +91,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     @stack('scripts')
 </body>
+
 </html>
+
+
