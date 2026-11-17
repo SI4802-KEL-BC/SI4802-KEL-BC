@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\User;
+use App\Models\Pengguna; // STUB PBI-13: sebelumnya App\Models\User
 
 return [
 
@@ -64,7 +64,7 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-            'model' => env('AUTH_MODEL', User::class),
+            'model' => env('AUTH_MODEL', Pengguna::class),
         ],
 
         // 'users' => [
