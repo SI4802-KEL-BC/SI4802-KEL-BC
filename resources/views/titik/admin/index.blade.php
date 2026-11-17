@@ -36,6 +36,7 @@
                         <th>Lokasi</th>
                         <th>Kategori</th>
                         <th>Status</th>
+                        <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -52,9 +53,16 @@
                                 @endforeach
                             </td>
                             <td><span class="badge {{ $t->status }}">{{ $t->status === 'aktif' ? 'Aktif' : 'Nonaktif' }}</span></td>
+                                <td class="aksi">
+                                <a class="lnk" href="{{ route('titik.admin.index', ['edit' => $t->id] + request()->except(['edit', 'tambah'])) }}">Edit</a>
+                                <form method="POST" action="{{ route('titik.admin.toggle', $t) }}">
+                                    @csrf
+                                    <button type="submit" class="lnk {{ $t->status === 'aktif' ? 'merah' : '' }}">{{ $t->status === 'aktif' ? 'Nonaktifkan' : 'Aktifkan' }}</button>
+                                </form>
+                            </td>
                         </tr>
                     @empty
-                        <tr><td colspan="4" class="muted">Tidak ada lokasi yang cocok.</td></tr>
+                        <tr><td colspan="5" class="muted">Tidak ada lokasi yang cocok.</td></tr>
                     @endforelse
                 </tbody>
             </table>
