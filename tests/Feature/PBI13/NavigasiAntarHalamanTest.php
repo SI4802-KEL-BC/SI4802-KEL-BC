@@ -321,13 +321,25 @@ class NavigasiAntarHalamanTest extends TestCase
     {
         $admin = Pengguna::factory()->admin()->create();
 
-        foreach ([route('admin.schedules.index'), route('admin.lokasi.index'), route('kategori.index')] as $url) {
+        foreach ([route('admin.schedules.index'), route('kategori.index')] as $url) {
             $this->actingAs($admin)->get($url)->assertOk()
                 ->assertSee('pk-nav-global', false)
                 ->assertSee('href="'.route('admin.verifikasi.index').'"', false)
                 ->assertSee('href="'.route('pindai.index').'"', false)
                 ->assertSee('action="'.route('logout').'"', false);
         }
+    }
+
+    public function test_sidebar_halaman_lokasi_menyambung_ke_modul_admin_lain(): void
+    {
+        // Halaman lokasi (PBI-10) memakai layout titik/_layout dengan sidebar sendiri.
+        $this->actingAs(Pengguna::factory()->admin()->create())
+            ->get(route('admin.lokasi.index'))->assertOk()
+            ->assertSee('href="'.route('admin.verifikasi.index').'"', false)
+            ->assertSee('href="'.route('kategori.index').'"', false)
+            ->assertSee('href="'.route('admin.schedules.index').'"', false)
+            ->assertSee('href="'.route('pindai.index').'"', false)
+            ->assertSee('action="'.route('logout').'"', false);
     }
 
     // ------------------------------------------------- halaman jadwal (admin)

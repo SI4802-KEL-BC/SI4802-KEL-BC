@@ -101,6 +101,13 @@ class LokasiController extends Controller
      */
     private function validated(Request $request, ?LokasiTempatSampah $lokasi = null): array
     {
+        // Koordinat valid tetapi di luar kotak kawasan Telkom University.
+        $kawasan = fn (array $batas) => function (string $attribute, mixed $value, \Closure $fail) use ($batas): void {
+            if ((float) $value < $batas[0] || (float) $value > $batas[1]) {
+                $fail('Koordinat berada di luar kawasan Telkom University.');
+            }
+        };
+
         $v = $request->validate([
             'nama_lokasi' => ['required', 'string', 'max:100'],
             'kode_titik' => ['required', 'string', 'max:10', Rule::unique('lokasi_tempat_sampah', 'kode_titik')->ignore($lokasi?->id_lokasi, 'id_lokasi')],
@@ -108,16 +115,20 @@ class LokasiController extends Controller
             'keterangan' => ['nullable', 'string', 'max:255'],
             'fasilitas' => ['nullable', 'string', 'max:255'],
             'kode_perangkat' => ['nullable', 'string', 'max:30', Rule::unique('lokasi_tempat_sampah', 'kode_perangkat')->ignore($lokasi?->id_lokasi, 'id_lokasi')],
-            'latitude' => ['required', 'numeric', 'between:'.self::LAT[0].','.self::LAT[1]],
-            'longitude' => ['required', 'numeric', 'between:'.self::LNG[0].','.self::LNG[1]],
+            'latitude' => ['bail', 'required', 'numeric', 'between:-90,90', $kawasan(self::LAT)],
+            'longitude' => ['bail', 'required', 'numeric', 'between:-180,180', $kawasan(self::LNG)],
             'kategori' => ['required', 'array', 'min:1'],
             'kategori.*' => ['exists:kategori_sampah,id_kategori'],
             'aktif' => ['sometimes', 'boolean'],
         ], [
             'kode_titik.unique' => 'Kode titik sudah digunakan.',
             'kode_perangkat.unique' => 'Kode perangkat sudah digunakan.',
-            'latitude.between' => 'Koordinat berada di luar kawasan Telkom University.',
-            'longitude.between' => 'Koordinat berada di luar kawasan Telkom University.',
+            'latitude.numeric' => 'Format koordinat tidak valid.',
+            'latitude.between' => 'Format koordinat tidak valid.',
+            'longitude.numeric' => 'Format koordinat tidak valid.',
+            'longitude.between' => 'Format koordinat tidak valid.',
+            'kategori.required' => 'Pilih minimal satu kategori yang diterima.',
+            'kategori.min' => 'Pilih minimal satu kategori yang diterima.',
         ]);
 
         $kategori = $v['kategori'];

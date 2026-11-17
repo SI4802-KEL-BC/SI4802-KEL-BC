@@ -64,12 +64,18 @@
     <nav class="sb">
         <div class="brand"><i>P</i><div>PilahKu<small>Panel Admin</small></div></div>
         <span class="off" title="Belum tersedia (sprint lain)">Dashboard</span>
-        <span class="off" title="Belum tersedia (sprint lain)">Validasi Aktivitas</span>
+        <a href="{{ route('admin.verifikasi.index') }}">Validasi Aktivitas</a>
         <span class="off" title="Belum tersedia (sprint lain)">Aturan Reward Point</span>
-        <span class="off" title="Belum tersedia (sprint lain)">Kategori Sampah</span>
-        <span class="off" title="Belum tersedia (sprint lain)">Jadwal Pengangkutan</span>
+        <a href="{{ route('kategori.index') }}">Kategori Sampah</a>
+        <a href="{{ route('admin.schedules.index') }}">Jadwal Pengangkutan</a>
         <a class="on" href="{{ route('admin.lokasi.index') }}">Lokasi Tempat Sampah</a>
+        <a href="{{ route('admin.qr-tong.index') }}">QR Tong Sampah</a>
         <span class="off" title="Belum tersedia (sprint lain)">Alur Pengelolaan</span>
+        <a href="{{ route('pindai.index') }}" style="margin-top: 18px;">Kembali ke Aplikasi</a>
+        <form method="POST" action="{{ route('logout') }}" style="margin: 0;">
+            @csrf
+            <button type="submit" style="display: block; width: 100%; padding: 9px 12px; border: 0; border-radius: 8px; background: none; color: #fff; font: inherit; font-size: 14px; text-align: left; cursor: pointer;">Keluar</button>
+        </form>
     </nav>
 
     <div class="main">

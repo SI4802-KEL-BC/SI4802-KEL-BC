@@ -105,9 +105,8 @@ class LoginTest extends TestCase
         $this->post('/logout')->assertRedirect(route('login'));
     }
 
-    public function test_tombol_dev_dan_route_dev_login_tidak_ada_di_luar_env_local(): void
+    public function test_tidak_ada_jalan_masuk_tanpa_kata_sandi(): void
     {
-        $this->assertSame('testing', app()->environment());
         $this->get('/login')
             ->assertOk()
             ->assertDontSee('Masuk sebagai User (dev)')
