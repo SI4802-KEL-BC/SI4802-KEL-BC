@@ -56,7 +56,7 @@
 
             <div class="space-y-1.5">
                 <label for="no_hp" class="pk-label">No. HP</label>
-                <input id="no_hp" name="no_hp" type="tel" maxlength="16" value="{{ old('no_hp') }}" placeholder="08xxxxxxxxxx" class="pk-input h-11">
+                <input id="no_hp" name="no_hp" type="tel" maxlength="15" value="{{ old('no_hp') }}" placeholder="08xxxxxxxxxx" class="pk-input h-11">
             </div>
 
             <div class="space-y-1.5">

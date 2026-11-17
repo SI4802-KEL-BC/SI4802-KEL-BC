@@ -3,6 +3,7 @@
 namespace Tests\Feature\PBI01;
 
 use App\Models\Pengguna;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
@@ -235,6 +236,43 @@ class MengelolaProfilPenggunaTest extends TestCase
                 'nim_nip' => 'NIM/NIP sudah terdaftar.',
             ]);
         $this->assertDatabaseCount('pengguna', 1);
+    }
+
+    /** Design Tabel pengguna: nim_nip unique, panjang kolom sesuai dokumen. */
+    public function test_tabel_pengguna_sesuai_design_tabel(): void
+    {
+        $this->penggunaAktif(['nim_nip' => '102022400017']);
+
+        $this->expectException(UniqueConstraintViolationException::class);
+        $this->penggunaAktif(['nim_nip' => '102022400017']);
+    }
+
+    public function test_migration_desain_tabel_berhenti_bila_ada_nim_dobel(): void
+    {
+        $migration = require database_path('migrations/2026_11_18_000000_sesuaikan_kolom_pengguna_dan_kategori_dengan_desain.php');
+        $migration->down();
+
+        $this->penggunaAktif(['nim_nip' => '102022400017']);
+        $this->penggunaAktif(['nim_nip' => '102022400017']);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('NIM/NIP dobel di tabel pengguna: 102022400017');
+        $migration->up();
+    }
+
+    public function test_nomor_hp_lebih_dari_15_karakter_ditolak(): void
+    {
+        $pengguna = $this->penggunaAktif();
+
+        // "+62" + 13 digit = 16 karakter, melebihi kolom no_hp VARCHAR(15).
+        $this->actingAs($pengguna)
+            ->put(route('profil.update'), ['nama_lengkap' => 'Nadia Putri', 'no_hp' => '+626281234567890'])
+            ->assertSessionHasErrors(['no_hp' => 'Format nomor HP tidak valid.']);
+
+        $this->actingAs($pengguna)
+            ->put(route('profil.update'), ['nama_lengkap' => 'Nadia Putri', 'no_hp' => '+6281234567890'])
+            ->assertSessionHasNoErrors();
+        $this->assertSame('+6281234567890', $pengguna->fresh()->no_hp);
     }
 
     public function test_ubah_kata_sandi_memakai_kata_sandi_lama(): void

@@ -38,7 +38,8 @@ class PenggunaController extends Controller
             'nama_lengkap' => ['required', 'string', 'max:100'],
             'nama_panggilan' => ['nullable', 'string', 'max:50'],
             'program_studi' => ['nullable', 'string', 'max:100'],
-            'no_hp' => ['nullable', 'regex:/^(\+62|0)[0-9]{8,13}$/'],
+            // Maks. 15 karakter, sama dengan kolom pengguna.no_hp.
+            'no_hp' => ['nullable', 'regex:/^(\+62[0-9]{8,12}|0[0-9]{8,14})$/'],
             'foto_profil' => [
                 'nullable',
                 'image',

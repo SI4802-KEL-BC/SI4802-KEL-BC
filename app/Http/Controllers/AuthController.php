@@ -32,7 +32,8 @@ class AuthController extends Controller
             'nim_nip' => ['required', 'regex:/^[0-9]{5,20}$/', Rule::unique('pengguna', 'nim_nip')],
             'email_kampus' => ['required', 'email', 'max:100', Rule::unique('pengguna', 'email_kampus')],
             'program_studi' => ['nullable', 'string', 'max:100'],
-            'no_hp' => ['nullable', 'regex:/^(\+62|0)[0-9]{8,13}$/'],
+            // Maks. 15 karakter, sama dengan kolom pengguna.no_hp.
+            'no_hp' => ['nullable', 'regex:/^(\+62[0-9]{8,12}|0[0-9]{8,14})$/'],
             'kata_sandi' => ['required', 'string', 'min:8', 'confirmed'],
         ], [
             'nama_lengkap.required' => 'Nama lengkap wajib diisi.',

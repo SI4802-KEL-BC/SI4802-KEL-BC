@@ -4,6 +4,7 @@ namespace Tests\Feature\PBI04;
 
 use App\Models\KategoriSampah;
 use App\Models\Pengguna;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -38,6 +39,15 @@ class KategoriCrudTest extends TestCase
             ->assertSessionHasErrors(['kode' => 'Kode kategori sudah digunakan']);
 
         $this->assertDatabaseCount('kategori_sampah', 1);
+    }
+
+    /** Design Tabel kategori_sampah: nama_kategori unique juga di database, bukan hanya di form. */
+    public function test_tabel_kategori_menolak_nama_dobel_di_database(): void
+    {
+        KategoriSampah::create(['nama_kategori' => 'Plastik', 'kode' => 'PLS', 'status' => 'aktif']);
+
+        $this->expectException(UniqueConstraintViolationException::class);
+        KategoriSampah::create(['nama_kategori' => 'Plastik', 'kode' => 'PLS2', 'status' => 'aktif']);
     }
 
     /** TC-KAT-07 · User biasa / belum login membuka halaman → 403 / redirect login. */
