@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AturanRewardController;
 use App\Http\Controllers\Admin\LokasiController;
 use App\Http\Controllers\Admin\QrTongController;
 use App\Http\Controllers\Admin\SchedulePageController;
@@ -52,6 +53,13 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin/verifikasi')->name('adm
     Route::get('/', [VerifikasiController::class, 'index'])->name('index');
     Route::get('/{aktivitas}', [VerifikasiController::class, 'show'])->name('show');
     Route::post('/{aktivitas}', [VerifikasiController::class, 'proses'])->name('proses');
+});
+
+Route::middleware(['auth', 'role:admin'])->prefix('admin/aturan-reward')->name('admin.aturan-reward.')->group(function () {
+    Route::get('/', [AturanRewardController::class, 'index'])->name('index');
+    Route::post('/', [AturanRewardController::class, 'store'])->name('store');
+    Route::put('/{aturan}', [AturanRewardController::class, 'update'])->name('update');
+    Route::patch('/{aturan}/status', [AturanRewardController::class, 'toggle'])->name('toggle');
 });
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin/lokasi')->name('admin.lokasi.')->group(function () {

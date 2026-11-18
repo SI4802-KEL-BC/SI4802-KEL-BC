@@ -18,6 +18,7 @@
     }
     if ($adminNav) {
         $tautanNav[] = ['Verifikasi', route('admin.verifikasi.index'), 'admin/verifikasi*'];
+        $tautanNav[] = ['Aturan Reward Point', route('admin.aturan-reward.index'), 'admin/aturan-reward*'];
         $tautanNav[] = ['Kelola Jadwal', route('admin.schedules.index'), 'admin/jadwal-pengangkutan*'];
         $tautanNav[] = ['Kelola Lokasi', route('admin.lokasi.index'), 'admin/lokasi*'];
         $tautanNav[] = ['Kelola Kategori', route('kategori.index'), 'kategori*'];

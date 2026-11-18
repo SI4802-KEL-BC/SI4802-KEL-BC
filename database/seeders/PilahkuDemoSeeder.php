@@ -58,11 +58,20 @@ class PilahkuDemoSeeder extends Seeder
 
         // Kategori (dibuat hanya bila belum ada, agar data milik SCRUM-27 tidak ditimpa) + aturan reward aktif.
         $kategori = [];
+        $urutanAturan = 1;
         foreach (self::KATEGORI as $nama => [$kode, $warna, $poin]) {
             $kategori[$nama] = $this->kategori($nama, $kode, $warna);
             AturanReward::updateOrCreate(
                 ['id_kategori' => $kategori[$nama]->id_kategori],
-                ['poin_per_satuan' => $poin, 'status' => 'aktif'],
+                [
+                    'kode_aturan' => 'RWD-'.str_pad((string) $urutanAturan++, 2, '0', STR_PAD_LEFT),
+                    'nama_aturan' => 'Pemilahan '.$nama,
+                    'jenis_aturan' => 'Penambahan',
+                    'poin_per_satuan' => $poin,
+                    'satuan' => 'per item',
+                    'syarat' => ['aktivitas_terverifikasi'],
+                    'status' => 'aktif',
+                ],
             );
         }
         [$plastik, $kertas, $organik] = [$kategori['Plastik'], $kategori['Kertas'], $kategori['Organik']];
