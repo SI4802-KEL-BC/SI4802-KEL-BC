@@ -15,13 +15,13 @@ class PanduanPemilahanSeeder extends Seeder
             ->where('status', 'aktif')
             ->whereNotNull('cara_penanganan')
             ->each(function (KategoriSampah $kategori): void {
-                $slug = Str::slug('panduan-' . $kategori->nama_kategori);
+                $slug = Str::slug('panduan-'.$kategori->nama_kategori);
 
                 PanduanPemilahan::updateOrCreate(
                     ['slug' => $slug],
                     [
                         'id_kategori' => $kategori->id_kategori,
-                        'judul' => 'Panduan memilah ' . $kategori->nama_kategori,
+                        'judul' => 'Panduan memilah '.$kategori->nama_kategori,
                         'ringkasan' => $kategori->deskripsi,
                         'langkah_pemilahan' => $kategori->cara_penanganan,
                         'status' => 'aktif',

@@ -11,6 +11,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased">
+@include('partials.nav-global')
 
 <div class="space-y-6 p-6 max-w-7xl mx-auto" x-data="{
     isEdit: false,
@@ -121,10 +122,10 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-4 text-right whitespace-nowrap space-x-2">
-                                    <button type="button" @click='detailKategori = @js($k)' class="text-xs font-semibold text-slate-700 hover:text-emerald-700">
+                                    <button type="button" @click="detailKategori = JSON.parse($event.currentTarget.dataset.kategori)" data-kategori="{{ $k->toJson() }}" class="text-xs font-semibold text-slate-700 hover:text-emerald-700">
                                         Detail
                                     </button>
-                                    <button type="button" @click='editKategori(@js($k))' class="text-xs font-semibold text-slate-700 hover:text-emerald-700">
+                                    <button type="button" @click="editKategori(JSON.parse($event.currentTarget.dataset.kategori))" data-kategori="{{ $k->toJson() }}" class="text-xs font-semibold text-slate-700 hover:text-emerald-700">
                                         Edit
                                     </button>
                                     <form method="POST" action="{{ route('kategori.toggle', $k->id_kategori) }}" class="inline" data-action="{{ $k->status === 'aktif' ? 'deactivate' : 'activate' }}"

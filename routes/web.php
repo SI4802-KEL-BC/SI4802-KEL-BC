@@ -1,14 +1,106 @@
 <?php
 
+use App\Http\Controllers\Admin\AturanRewardController;
+use App\Http\Controllers\Admin\LokasiController;
+use App\Http\Controllers\Admin\QrTongController;
+use App\Http\Controllers\Admin\SchedulePageController;
+use App\Http\Controllers\Admin\VerifikasiController;
+use App\Http\Controllers\AktivitasController;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\PanduanPemilahanController;
+use App\Http\Controllers\PenggunaController;
+use App\Http\Controllers\PindaiController;
+use App\Http\Controllers\PublicScheduleController;
+use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'home')->name('home');
+
 Route::get('/panduan', [PanduanPemilahanController::class, 'index'])->name('panduan.index');
 Route::get('/panduan/kategori/{id}', [PanduanPemilahanController::class, 'showKategori'])->name('panduan.kategori');
 Route::get('/panduan/{slug}', [PanduanPemilahanController::class, 'show'])->name('panduan.show');
 
-Route::get('/kategori', [KategoriController::class, 'index'])->name('kategori.index');
-Route::post('/kategori', [KategoriController::class, 'store'])->name('kategori.store');
-Route::put('/kategori/{kategori}', [KategoriController::class, 'update'])->name('kategori.update');
-Route::post('/kategori/{kategori}/toggle', [KategoriController::class, 'toggle'])->name('kategori.toggle');
+// Masuk dan keluar akun (tabel pengguna: email_kampus + kata_sandi).
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AuthController::class, 'form'])->name('login');
+    Route::post('/login', [AuthController::class, 'masuk'])->middleware('throttle:10,1')->name('login.masuk');
+    // PBI-01: registrasi akun pengguna.
+    Route::get('/register', [AuthController::class, 'formDaftar'])->name('register');
+    Route::post('/register', [AuthController::class, 'daftar'])->name('register.simpan');
+});
+Route::post('/logout', [AuthController::class, 'keluar'])->middleware('auth')->name('logout');
+
+// PBI-13: halaman pengguna (wajib login).
+Route::middleware('auth')->group(function () {
+    // Pengguna memindai QR yang tertempel di tong sampah (URL tetap per tong).
+    Route::get('/pindai', [PindaiController::class, 'index'])->name('pindai.index');
+    Route::post('/pindai', [PindaiController::class, 'simpan'])->name('pindai.simpan');
+    Route::get('/pindai/{kode}', [PindaiController::class, 'mulai'])->where('kode', '[A-Za-z0-9_-]+')->name('pindai.mulai');
+    // PBI-14: riwayat aktivitas milik sendiri.
+    Route::get('/aktivitas', [AktivitasController::class, 'index'])->name('aktivitas.index');
+    Route::get('/aktivitas/{aktivitas}', [AktivitasController::class, 'show'])->name('aktivitas.show');
+    // PBI-15: status terbaru (JSON) untuk pembaruan otomatis di halaman detail.
+    Route::get('/aktivitas/{aktivitas}/status', [AktivitasController::class, 'status'])->name('aktivitas.status');
+    Route::patch('/aktivitas/{aktivitas}/catatan', [AktivitasController::class, 'ubahCatatan'])->name('aktivitas.catatan');
+    Route::delete('/aktivitas/{aktivitas}', [AktivitasController::class, 'destroy'])->name('aktivitas.destroy');
+});
+
+// PBI-13: QR tong sampah untuk dicetak (hanya Admin).
+Route::middleware(['auth', 'role:admin'])->get('/admin/qr-tong', [QrTongController::class, 'index'])->name('admin.qr-tong.index');
+
+// PBI-13: verifikasi manual tahap 2 (hanya Admin).
+Route::middleware(['auth', 'role:admin'])->prefix('admin/verifikasi')->name('admin.verifikasi.')->group(function () {
+    Route::get('/', [VerifikasiController::class, 'index'])->name('index');
+    Route::get('/{aktivitas}', [VerifikasiController::class, 'show'])->name('show');
+    Route::post('/{aktivitas}', [VerifikasiController::class, 'proses'])->name('proses');
+});
+
+Route::middleware(['auth', 'role:admin'])->prefix('admin/aturan-reward')->name('admin.aturan-reward.')->group(function () {
+    Route::get('/', [AturanRewardController::class, 'index'])->name('index');
+    Route::post('/', [AturanRewardController::class, 'store'])->name('store');
+    Route::put('/{aturan}', [AturanRewardController::class, 'update'])->name('update');
+    Route::patch('/{aturan}/status', [AturanRewardController::class, 'toggle'])->name('toggle');
+});
+
+Route::middleware(['auth', 'role:admin'])->prefix('admin/lokasi')->name('admin.lokasi.')->group(function () {
+    Route::get('/', [LokasiController::class, 'index'])->name('index');
+    Route::post('/', [LokasiController::class, 'store'])->name('store');
+    Route::put('/{lokasi}', [LokasiController::class, 'update'])->name('update');
+    Route::post('/{lokasi}/toggle', [LokasiController::class, 'toggle'])->name('toggle');
+});
+
+// PBI-04: kelola kategori sampah (hanya Admin).
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/kategori', [KategoriController::class, 'index'])->name('kategori.index');
+    Route::post('/kategori', [KategoriController::class, 'store'])->name('kategori.store');
+    Route::put('/kategori/{kategori}', [KategoriController::class, 'update'])->name('kategori.update');
+    Route::post('/kategori/{kategori}/toggle', [KategoriController::class, 'toggle'])->name('kategori.toggle');
+});
+
+Route::get('/jadwal-pengangkutan', [PublicScheduleController::class, 'index'])
+    ->name('schedules.public');
+
+Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/jadwal-pengangkutan', [SchedulePageController::class, 'index'])
+        ->name('schedules.index');
+    Route::post('/jadwal-pengangkutan', [SchedulePageController::class, 'store'])
+        ->name('schedules.store');
+    Route::put('/jadwal-pengangkutan/{schedule}', [SchedulePageController::class, 'update'])
+        ->name('schedules.update');
+    Route::patch('/jadwal-pengangkutan/{schedule}/status', [SchedulePageController::class, 'updateStatus'])
+        ->name('schedules.status');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [PenggunaController::class, 'show'])->name('profil.show');
+    Route::get('/profile/edit', [PenggunaController::class, 'edit'])->name('profil.edit');
+    Route::put('/profile', [PenggunaController::class, 'update'])->name('profil.update');
+    Route::put('/profile/password', [PenggunaController::class, 'ubahKataSandi'])->name('profil.password');
+    Route::post('/profile/deactivate', [PenggunaController::class, 'nonaktifkan'])->name('profil.deactivate');
+});
+
+// STUB PBI-13 - hapus saat PBI-01 masuk: route bantu khusus lokal (login pintas & simulator tong).
+// routes/dev.php tidak di-commit, jadi hanya dimuat bila filenya ada dan APP_ENV=local.
+if (app()->environment('local') && is_file(__DIR__.'/dev.php')) {
+    require __DIR__.'/dev.php';
+}
