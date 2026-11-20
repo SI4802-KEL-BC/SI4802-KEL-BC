@@ -8,6 +8,7 @@ use Facebook\WebDriver\Remote\RemoteWebDriver;
 use Illuminate\Support\Collection;
 use Laravel\Dusk\TestCase as BaseTestCase;
 use PHPUnit\Framework\Attributes\BeforeClass;
+use Tests\Browser\BrowserLambat;
 
 abstract class DuskTestCase extends BaseTestCase
 {
@@ -56,5 +57,17 @@ abstract class DuskTestCase extends BaseTestCase
                 ChromeOptions::CAPABILITY, $options
             )
         );
+    }
+
+    /**
+     * Pakai BrowserLambat supaya jalannya test bisa diperlambat untuk ditonton.
+     * Kecepatan diatur DUSK_SLOW_MS dan DUSK_SLOW_TYPE_MS (lihat tests/Browser/BrowserLambat.php).
+     */
+    protected function newBrowser($driver)
+    {
+        BrowserLambat::$jeda = max(0, (int) env('DUSK_SLOW_MS', 0));
+        BrowserLambat::$jedaKetik = max(0, (int) env('DUSK_SLOW_TYPE_MS', 0));
+
+        return new BrowserLambat($driver);
     }
 }
