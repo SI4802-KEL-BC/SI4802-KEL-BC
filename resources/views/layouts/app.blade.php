@@ -33,6 +33,7 @@
     ];
     $menuAdmin = [
         ['label' => 'Verifikasi Manual', 'ikon' => 'perisai', 'url' => url('/admin/verifikasi'), 'pola' => 'admin/verifikasi*', 'siap' => true],
+        ['label' => 'Aturan Reward Point', 'ikon' => 'koin', 'url' => route('admin.aturan-reward.index'), 'pola' => 'admin/aturan-reward*', 'siap' => true],
         ['label' => 'QR Tong Sampah', 'ikon' => 'qr', 'url' => url('/admin/qr-tong'), 'pola' => 'admin/qr-tong*', 'siap' => true],
         ['label' => 'Kelola Jadwal', 'ikon' => 'kalender', 'url' => route('admin.schedules.index'), 'pola' => 'admin/jadwal-pengangkutan*', 'siap' => true],
         ['label' => 'Kelola Lokasi', 'ikon' => 'pin', 'url' => route('admin.lokasi.index'), 'pola' => 'admin/lokasi*', 'siap' => true],

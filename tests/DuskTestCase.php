@@ -31,6 +31,9 @@ abstract class DuskTestCase extends BaseTestCase
             $this->shouldStartMaximized() ? '--start-maximized' : '--window-size=1920,1080',
             '--disable-search-engine-choice-screen',
             '--disable-smooth-scrolling',
+            '--disable-gpu',
+            '--disable-gpu-sandbox',
+            '--no-sandbox',
             // Tanpa ini Chrome memunculkan popup "simpan/periksa kata sandi" setelah login,
             // dan ketikan pada test berikutnya masuk ke popup, bukan ke form.
             '--disable-features=PasswordLeakDetection,PasswordCheck,PasswordManagerOnboarding',
@@ -39,7 +42,6 @@ abstract class DuskTestCase extends BaseTestCase
             '--no-default-browser-check',
         ])->unless($this->hasHeadlessDisabled(), function (Collection $items) {
             return $items->merge([
-                '--disable-gpu',
                 '--headless=new',
             ]);
         })->all());

@@ -38,7 +38,19 @@ trait DataUji
             ['nama_kategori' => 'Plastik'],
             ['kode' => 'PLS', 'warna_label' => '#3b82f6', 'status' => 'aktif'],
         );
-        AturanReward::firstOrCreate(['id_kategori' => $kategori->id_kategori], ['poin_per_satuan' => 10, 'status' => 'aktif']);
+        AturanReward::firstOrCreate(
+            ['id_kategori' => $kategori->id_kategori],
+            [
+                'kode_aturan' => 'RWD-'.str_pad((string) $kategori->id_kategori, 2, '0', STR_PAD_LEFT),
+                'nama_aturan' => 'Pemilahan Plastik',
+                'jenis_aturan' => 'Penambahan',
+                'poin_per_satuan' => 10,
+                'satuan' => 'per item',
+                'syarat' => ['aktivitas_terverifikasi'],
+                'berlaku_mulai' => now()->toDateString(),
+                'status' => 'aktif',
+            ],
+        );
 
         return $kategori;
     }
